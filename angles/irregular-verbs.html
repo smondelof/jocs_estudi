@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Irregular Verbs Challenge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one centered "game card" column; start → question → results, like a quiz show on a school notebook */
+:root{
+  --bg:#eef4ff; --paper:#ffffff; --ink:#1d2340; --muted:#5b6386; --line:#d4dcf2;
+  --accent:#2f5bea; --accent-ink:#ffffff; --sun:#ffc531; --good:#14905a; --good-bg:#dff5ea;
+  --bad:#d33c3c; --bad-bg:#fde6e6; --chip:#e4ebff;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#12162b; --paper:#1c2240; --ink:#eef1ff; --muted:#a3abd0; --line:#2f3762;
+  --accent:#7d9bff; --accent-ink:#0d1230; --sun:#ffd25c; --good:#4fd18f; --good-bg:#16352a;
+  --bad:#ff7b7b; --bad-bg:#3d1e26; --chip:#262d55; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#12162b; --paper:#1c2240; --ink:#eef1ff; --muted:#a3abd0; --line:#2f3762;
+  --accent:#7d9bff; --accent-ink:#0d1230; --sun:#ffd25c; --good:#4fd18f; --good-bg:#16352a;
+  --bad:#ff7b7b; --bad-bg:#3d1e26; --chip:#262d55; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px);background-size:100% 34px}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);margin:0;line-height:1.1;text-wrap:balance}
+h1 span{background:var(--sun);color:#1d2340;padding:0 .25em;border-radius:6px;display:inline-block;transform:rotate(-2deg)}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 6px 0 var(--line)}
+.muted{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);border-radius:999px;padding:3px 11px;font-size:.92rem;font-variant-numeric:tabular-nums}
+.chip b{font-weight:700}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font-family:var(--display);font-weight:600;font-size:1.05rem;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);transition:transform .08s}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb, var(--accent) 60%, #000)}
+button.ghost{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{background:var(--chip);color:var(--ink);box-shadow:0 3px 0 var(--line);padding:9px 14px;font-size:.98rem}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);box-shadow:0 3px 0 color-mix(in srgb, var(--accent) 60%, #000)}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:600}
+.bar{height:12px;background:var(--chip);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:999px;transition:width .3s}
+.tag{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.prompt{font-size:1.25rem}
+.big{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,6vw,2.2rem);line-height:1.2}
+.es{color:var(--muted);font-style:italic}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:.85rem;color:var(--muted);font-weight:700}
+input[type=text]{font-family:var(--display);font-size:1.3rem;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);width:100%}
+input.ok{border-color:var(--good);background:var(--good-bg)} input.ko{border-color:var(--bad);background:var(--bad-bg)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts button{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line);font-size:1.2rem}
+.opts button.ok{background:var(--good);color:#fff} .opts button.ko{background:var(--bad);color:#fff}
+.sentence{font-size:1.3rem;line-height:1.7}
+.sentence input{display:inline-block;width:9.5em;font-size:1.15rem;padding:4px 8px;vertical-align:baseline}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ok{background:var(--good-bg);color:var(--good)} .fb.ko{background:var(--bad-bg);color:var(--bad)}
+.fb small{display:block;font-weight:400;color:var(--ink);margin-top:2px}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
+.stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat div{border-radius:12px;padding:8px 14px;font-family:var(--display);font-weight:600}
+.stat .g{background:var(--good-bg);color:var(--good)} .stat .b{background:var(--bad-bg);color:var(--bad)}
+.miss{display:flex;flex-direction:column;gap:10px}
+.miss article{border-left:5px solid var(--bad);background:var(--bg);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.miss .q{font-weight:700}
+.miss .yours{color:var(--bad)} .miss .right{color:var(--good);font-weight:700}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
+th{font-family:var(--display);font-weight:600;color:var(--muted);font-size:.9rem}
+.small{font-size:.9rem}
+@media (max-width:440px){ .opts{grid-template-columns:1fr} .card{padding:16px} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease-out}
+textarea.report{width:100%;min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.45;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical}
+details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;margin-top:4px}
+.ftable{min-width:520px}
+.ftable td{padding:5px 6px;vertical-align:middle}
+.ftable td.given{font-family:var(--display);font-weight:600;font-size:1.1rem;padding-left:12px}
+.ftable input[type=text]{font-size:1.05rem;padding:6px 8px;min-width:6.5em}
+.ftable td.num{color:var(--muted);font-variant-numeric:tabular-nums;width:2em}
+.ftable .fix{display:block;font-size:.8rem;color:var(--good);font-family:var(--body);font-weight:700;margin-top:2px}
+.replist{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 12px}
+.rep-row .info{min-width:0;font-variant-numeric:tabular-nums}
+.rep-row button{padding:7px 12px;font-size:.92rem}
+.back{flex-basis:100%;font-family:var(--display);font-weight:600;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+#confetti{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <a class="back" id="backLink" href="../index.html" hidden>← All games</a>
+    <h1>Irregular <span>Verbs</span> Challenge</h1>
+    <button class="ghost" id="soundBtn" aria-pressed="true" type="button">Sound: on</button>
+  </header>
+
+  <!-- START -->
+  <section class="card" id="start">
+    <h2>Ready for your English exam?</h2>
+    <p class="muted" style="margin:0">Practise the present and the past of irregular verbs. Every game mixes the verbs and changes the exercises: write the present and the past, fill the gap, choose the right answer, complete sentences, true or false, and present or past sentences with regular verbs too. The last challenge is always a table with all the verbs. At the end you will see your correct answers, your mistakes and why.</p>
+    <div>
+      <div class="tag" style="margin-bottom:6px">Exam verbs</div>
+      <div class="chips" id="verbChips"></div>
+    </div>
+    <div>
+      <div class="tag" style="margin-bottom:6px">How many questions?</div>
+      <div class="seg" id="lenSeg">
+        <button type="button" data-n="10" aria-pressed="false">10 · quick</button>
+        <button type="button" data-n="25" aria-pressed="true">25 · all the verbs</button>
+        <button type="button" data-n="40" aria-pressed="false">40 · super challenge</button>
+      </div>
+    </div>
+    <div class="row"><button type="button" id="startBtn">Start!</button></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="card" id="quiz" hidden>
+    <div class="hud"><span id="qCount">Question 1 of 25</span><span id="hudScore">Correct: 0 · Streak: 0</span></div>
+    <div class="bar"><i id="barFill" style="width:0%"></i></div>
+    <div class="tag" id="qType"></div>
+    <form id="qForm" autocomplete="off">
+      <div id="qBody" style="display:flex;flex-direction:column;gap:14px"></div>
+      <div id="fb" style="margin-top:14px" hidden></div>
+      <div class="row" style="margin-top:14px">
+        <button type="submit" id="checkBtn">Check</button>
+        <button type="button" id="nextBtn" hidden>Next</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- FINAL TABLE -->
+  <section class="card" id="final" hidden>
+    <div class="tag">Final challenge</div>
+    <h2>Complete the table with all the verbs</h2>
+    <p class="prompt" style="margin:0">Each row has one word. Write the other two: Spanish, present and past.</p>
+    <form id="finalForm" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
+      <div class="tablewrap"><table class="ftable"><thead><tr><th></th><th>Spanish</th><th>Present</th><th>Past</th></tr></thead><tbody id="finalBody"></tbody></table></div>
+      <div id="finalFb" hidden></div>
+      <div class="row">
+        <button type="button" id="finalCheck">Check the table</button>
+        <button type="button" id="finalNext" hidden>See results</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="card" id="results" hidden>
+    <h2 id="resTitle"></h2>
+    <div class="score">
+      <div class="num" id="resNum"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="stars" id="resStars"></div>
+        <div class="stat"><div class="g" id="resOk"></div><div class="b" id="resKo"></div></div>
+      </div>
+    </div>
+    <div id="missBlock">
+      <div class="tag" style="margin-bottom:8px">Mistakes and why</div>
+      <div class="miss" id="missList"></div>
+    </div>
+    <div id="reviewBlock">
+      <div class="tag" style="margin-bottom:8px">Review these verbs</div>
+      <div class="tablewrap"><table><thead><tr><th>Present</th><th>Past</th><th>Meaning</th></tr></thead><tbody id="reviewBody"></tbody></table></div>
+    </div>
+    <div>
+      <div class="tag" style="margin-bottom:8px">Correct answers</div>
+      <div class="chips" id="okList"></div>
+    </div>
+    <div id="reportBlock" style="display:flex;flex-direction:column;gap:8px">
+      <div class="tag">Test report</div>
+      <div class="row">
+        <button type="button" id="dlBtn" hidden>Download report (.txt)</button>
+        <button type="button" class="ghost" id="copyBtn">Copy report</button>
+      </div>
+      <span class="small muted" id="dlMsg" aria-live="polite"></span>
+      <details class="rep"><summary>Show report</summary><textarea class="report" id="reportText" readonly aria-label="Informe"></textarea></details>
+    </div>
+    <div class="row">
+      <button type="button" id="againBtn">Play again (new questions)</button>
+      <button type="button" class="ghost" id="failBtn">Practise my mistakes</button>
+      <button type="button" class="ghost" id="homeBtn">Home</button>
+    </div>
+  </section>
+
+  <!-- SAVED REPORTS (for the teacher) -->
+  <section class="card" id="reports" hidden>
+    <h2>Saved reports</h2>
+    <p class="muted small" style="margin:0">Every finished test is saved here automatically, so the teacher can check it. Newest first.</p>
+    <div class="replist" id="repList"><span class="muted">No saved reports yet. When a test is finished, its report appears here.</span></div>
+    <span class="small muted" id="repMsg" aria-live="polite"></span>
+  </section>
+</div>
+
+<script>
+const VERBS = [
+ {b:"buy",p:["bought"],pp:["bought"],es:"comprar",traps:["buyed","brought","boughten"],
+  s:["Yesterday my mum ___ a new bike for me.","I have ___ a present for you."]},
+ {b:"catch",p:["caught"],pp:["caught"],es:"atrapar, coger",traps:["catched","cought","catchen"],
+  s:["The goalkeeper ___ the ball.","Have you ever ___ a fish?"]},
+ {b:"come",p:["came"],pp:["come"],es:"venir",traps:["comed","camed","comen"],
+  s:["My grandma ___ to my party last Sunday.","Look! Spring has ___."]},
+ {b:"do",p:["did"],pp:["done"],es:"hacer (una tarea)",traps:["doed","dided","doen"],
+  s:["I ___ my homework after school yesterday.","Have you ___ your homework?"]},
+ {b:"drink",p:["drank"],pp:["drunk"],es:"beber",traps:["drinked","dranked","drunken"],
+  s:["She ___ a glass of milk this morning.","I have ___ all the orange juice."]},
+ {b:"eat",p:["ate"],pp:["eaten"],es:"comer",traps:["eated","ated","eatten"],
+  s:["We ___ pizza last night.","Have you ever ___ sushi?"]},
+ {b:"get",p:["got"],pp:["got","gotten"],es:"conseguir, recibir",traps:["getted","gat","goted"],
+  s:["I ___ a good mark in maths last week.","He has ___ a new puppy."]},
+ {b:"give",p:["gave"],pp:["given"],es:"dar",traps:["gived","gaved","gaven"],
+  s:["Dad ___ me a book for my birthday.","She has ___ me her pencil."]},
+ {b:"go",p:["went"],pp:["gone"],es:"ir",traps:["goed","wented","goen"],
+  s:["We ___ to the beach last summer.","Tom isn't here. He has ___ to the park."]},
+ {b:"hear",p:["heard"],pp:["heard"],es:"oír",traps:["heared","hearen","herd"],
+  s:["I ___ a strange noise last night.","Have you ___ the news?"]},
+ {b:"know",p:["knew"],pp:["known"],es:"saber, conocer (algo)",traps:["knowed","knewn","new"],
+  s:["I ___ the answer to the question!","I have ___ Pablo since I was five."]},
+ {b:"make",p:["made"],pp:["made"],es:"hacer, fabricar (crear algo)",traps:["maked","maden","mayed"],
+  s:["We ___ a chocolate cake yesterday.","She has ___ a paper plane."]},
+ {b:"meet",p:["met"],pp:["met"],es:"conocer (a alguien), quedar con",traps:["meeted","mett","meten"],
+  s:["I ___ my best friend at school.","Have you ___ my cousin?"]},
+ {b:"read",p:["read"],pp:["read"],es:"leer",traps:["readed","red","readen"],
+  s:["I ___ a funny comic yesterday.","I have ___ this book twice."]},
+ {b:"run",p:["ran"],pp:["run"],es:"correr",traps:["runned","ranned","runnen"],
+  s:["The dog ___ across the garden.","I have ___ a long way today."]},
+ {b:"say",p:["said"],pp:["said"],es:"decir",traps:["sayed","sed","saiden"],
+  s:["The teacher ___ \"Good job!\" to me.","What have you ___?"]},
+ {b:"see",p:["saw"],pp:["seen"],es:"ver",traps:["seed","sawn","sawed"],
+  s:["We ___ a giraffe at the zoo.","Have you ever ___ a shooting star?"]},
+ {b:"send",p:["sent"],pp:["sent"],es:"enviar",traps:["sended","sendt","senten"],
+  s:["I ___ a message to my friend.","Grandpa has ___ us a postcard."]},
+ {b:"tell",p:["told"],pp:["told"],es:"contar, decir",traps:["telled","tolded","tellen"],
+  s:["She ___ me a funny joke.","I have ___ you the truth."]},
+ {b:"wear",p:["wore"],pp:["worn"],es:"llevar puesto",traps:["weared","wored","weard"],
+  s:["He ___ a red T-shirt yesterday.","I have never ___ a tie."]},
+ {b:"be",p:["was","were"],pp:["been"],es:"ser, estar",traps:["beed","is","are","being"],
+  s:["Yesterday I ___ very happy.","I have ___ to London twice."],
+  sa:[["was"],["been"]]},
+ {b:"forget",p:["forgot"],pp:["forgotten"],es:"olvidar",traps:["forgetted","forgoten","forgeted"],
+  s:["I ___ my umbrella at school.","Oh no! I have ___ his name."]},
+ {b:"take",p:["took"],pp:["taken"],es:"coger, tomar, llevar",traps:["taked","tooked","tooken"],
+  s:["We ___ a lot of photos on holiday.","Who has ___ my pen?"]},
+ {b:"ring",p:["rang"],pp:["rung"],es:"sonar, llamar",traps:["ringed","rong","ranged"],
+  s:["The phone ___ three times.","The bell has ___. Time for break!"]},
+ {b:"think",p:["thought"],pp:["thought"],es:"pensar",traps:["thinked","thinked","thoughted"],
+  s:["I ___ about you yesterday.","Have you ___ about it?"]},
+];
+const FORM_NAME = ["el presente (infinitivo)","el pasado (past simple)"];
+const FORM_SHORT = ["Present","Past"];
+const FORM_EN = ["the present","the past"];
+const TYPES = {
+  trio:"Present and past", gap:"Fill the gap", choice:"Choose the right answer",
+  sentence:"Complete the sentence", tf:"True or false?", tense:"Present or past?", table:"Final table"
+};
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a; };
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const norm = s => (s||"").toLowerCase().replace(/[.!?¡¿"']/g,"").replace(/\s+/g," ").trim();
+const formsOf = v => [[v.b],v.p];
+const show = v => `${v.b} – ${v.p.join("/")}`;
+const disp = (v,k) => formsOf(v)[k].join(" / ");
+function regular(b){ if(/e$/.test(b)) return b+"d"; if(/[^aeiou]y$/.test(b)) return b.slice(0,-1)+"ied"; return b+"ed"; }
+function lev(a,b){const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+function accepts(input, list, isBePast){
+  const n = norm(input);
+  if(isBePast){ const parts = n.split(/\s*(?:\/|,|or|o|y|and)\s*/).filter(Boolean); return parts.length>0 && parts.every(p=>list.includes(p)); }
+  return list.includes(n);
+}
+// Explain WHY an answer is wrong
+function reason(input, v, k, expected){
+  try{ return reasonCore(input, v, k, expected); }catch(e){ return `La respuesta correcta es «${expected.join(" / ")}».`; }
+}
+function reasonCore(input, v, k, expected){
+  const n = norm(input), correct = expected.join(" / ");
+  if(!n) return `No has escrito nada. La respuesta es «${correct}».`;
+  const f = formsOf(v);
+  if(k>0 && (n===regular(v.b) || (/ed$/.test(n) && !expected.includes(n))))
+    return `Has añadido -ed como si fuera un verbo regular, pero «${v.b}» es irregular: ${show(v)}.`;
+  if(k===1 && v.pp.includes(n) && !expected.includes(n))
+    return `«${n}» no es el pasado de «${v.b}». El pasado es «${correct}».`;
+  for(let j=0;j<f.length;j++) if(j!==k && f[j].includes(n) && !expected.includes(n))
+    return `Has escrito ${FORM_NAME[j]} («${n}») en lugar de ${FORM_NAME[k]}, que es «${correct}».`;
+  if(expected.some(e=>lev(n,e)<=2)) return `¡Casi! Fíjate en cómo se escribe: «${correct}».`;
+  for(const o of VERBS){ if(o===v) continue; const of=formsOf(o); for(let j=0;j<of.length;j++) if(of[j].includes(n))
+    return `«${n}» es una forma del verbo «${o.b}» (${o.es}), no de «${v.b}». Lo correcto es «${correct}».`; }
+  // (other verbs: only present and past are compared)
+  return `La respuesta correcta es «${correct}» (${show(v)}).`;
+}
+function distractors(v,k){
+  const correct = formsOf(v)[k];
+  const pool = [regular(v.b), v.b, ...v.traps];
+  const seen=new Set(), out=[];
+  for(const d of shuffle(pool)){ const x=norm(d); if(!x||correct.includes(x)||seen.has(x)) continue; seen.add(x); out.push(x); }
+  return out.slice(0,3);
+}
+
+// ---------- build a round ----------
+function buildRound(n, onlyVerbs){
+  const src = onlyVerbs && onlyVerbs.length ? onlyVerbs : VERBS;
+  let verbs = [];
+  while(verbs.length<n) verbs = verbs.concat(shuffle(src));
+  verbs = verbs.slice(0,n);
+  // avoid the same verb twice in a row
+  for(let i=1;i<verbs.length;i++) if(verbs[i]===verbs[i-1]){ const j=verbs.findIndex((x,idx)=>idx>i && x!==verbs[i-1] && x!==verbs[i+1]); if(j>0)[verbs[i],verbs[j]]=[verbs[j],verbs[i]]; }
+  const typeKeys = ["trio","gap","choice","sentence","tf","tense"];
+  let types=[]; while(types.length<n) types=types.concat(shuffle(typeKeys));
+  return verbs.map((v,i)=>makeQ(v,types[i]));
+}
+// ---------- present or past? (regular + irregular verbs) ----------
+const REGULAR = [
+ ["play","played","jugar","football"],["watch","watched","ver (la tele), mirar","TV"],["walk","walked","caminar, andar","to school"],
+ ["jump","jumped","saltar","on the trampoline"],["cook","cooked","cocinar","dinner"],["clean","cleaned","limpiar","the kitchen"],
+ ["help","helped","ayudar","Mum in the garden"],["like","liked","gustar","chocolate",1],["love","loved","encantar, querer","animals",1],
+ ["live","lived","vivir","in a big house",1],["dance","danced","bailar","at parties"],["listen","listened","escuchar","to music"],
+ ["open","opened","abrir","the window"],["visit","visited","visitar","the zoo"],["want","wanted","querer","a new bike",1],
+ ["paint","painted","pintar","pictures"],["climb","climbed","trepar, escalar","trees"],["wash","washed","lavar","the dishes"],
+ ["stop","stopped","parar","at the shop"],["study","studied","estudiar","English"],["brush","brushed","cepillar","the dog"],
+ ["kick","kicked","dar una patada","the ball"],["start","started","empezar","school at nine"],["finish","finished","terminar","lunch early"],
+].map(([b,p,es,obj,stative])=>({b,p:[p],pp:[p],es,traps:[],obj,stative:!!stative,reg:true}));
+const TINFO = {buy:{obj:"bread at the bakery"},catch:{obj:"the ball"},come:{obj:"to my house"},do:{obj:"exercise in the park"},
+ drink:{obj:"orange juice"},eat:{obj:"pizza"},get:{obj:"up early"},give:{obj:"flowers to Grandma"},go:{obj:"to the swimming pool"},
+ hear:{obj:"the birds in the garden"},know:{obj:"a lot about dinosaurs",stative:true},make:{obj:"a cake"},meet:{obj:"friends in the park"},
+ read:{obj:"comics"},run:{obj:"in the park"},say:{obj:"hello to the teacher"},see:{obj:"Grandma"},send:{obj:"messages to Grandpa"},
+ tell:{obj:"funny jokes"},wear:{obj:"a blue T-shirt"},be:{obj:"at school"},forget:{obj:"the keys"},take:{obj:"the bus to school"},
+ ring:{obj:"",subj:["The bell","The phone","My alarm clock"]},think:{obj:"about football"}};
+const SUBJ = [["I",1],["You",2],["We",2],["They",2],["He",3],["She",3],["My sister",3],["My friends",2],["Tom",3],["Lucy",3],["My dad",3],["The children",2]];
+const T_PRES = ["every day","every Saturday","on Mondays","every morning","every week"], T_PAST = ["yesterday","last Saturday","last week","two days ago","last summer"];
+const S_PRES = ["now","these days"], S_PAST = ["last year","two years ago"];
+function third(b){ if(b==="be") return "is"; if(/(s|x|z|ch|sh|o)$/.test(b)) return b+"es"; if(/[^aeiou]y$/.test(b)) return b.slice(0,-1)+"ies"; return b+"s"; }
+function tenseAnswer(vb,p,tense){
+  if(vb.b==="be") return tense==="present" ? (p===1?"am":p===3?"is":"are") : (p===2?"were":"was");
+  return tense==="present" ? (p===3?third(vb.b):vb.b) : vb.p[0];
+}
+function makeTense(v){
+  const vb = Math.random()<0.5 ? pick(REGULAR) : v;
+  const info = vb.reg ? vb : TINFO[vb.b];
+  const subj = info.subj ? [pick(info.subj),3] : pick(SUBJ);
+  const tense = Math.random()<0.75 ? "past" : "present";
+  const time = info.stative ? pick(tense==="present"?S_PRES:S_PAST) : pick(tense==="present"?T_PRES:T_PAST);
+  const text = `${subj[0]} ___ ${info.obj} ${time}.`.replace(/\s+/g," ");
+  return {v:vb,type:"tense",tense,subj:subj[0],p:subj[1],time,text,ans:tenseAnswer(vb,subj[1],tense)};
+}
+function tReason(input,q){
+  const vb=q.v, n=norm(input), c=q.ans, b=vb.b;
+  if(!n) return `No has escrito nada. Lo correcto es «${c}».`;
+  if(q.tense==="present"){
+    if(vb.p.includes(n) || n===regular(b) || (/ed$/.test(n) && n!==c)) return `La frase está en presente (fíjate en «${q.time}»), así que no va en pasado. Lo correcto es «${c}».`;
+    if(b==="be") return `Con «${q.subj}», el verbo be en presente es «${c}» (I am, he/she is, you/we/they are).`;
+    if(q.p===3 && n===b) return `Con «${q.subj}» en presente hay que añadir -s (o -es): «${c}».`;
+    if(q.p!==3 && n===third(b)) return `Con «${q.subj}» no se añade -s en presente: «${c}».`;
+    if(lev(n,c)<=2) return `¡Casi! Revisa la ortografía: «${c}».`;
+    return `La frase está en presente (fíjate en «${q.time}»): lo correcto es «${c}».`;
+  }
+  if(b==="be" && ["was","were"].includes(n)) return `Con «${q.subj}», el pasado de be es «${c}» (I/he/she was, you/we/they were).`;
+  if(n===b || n===third(b) || (b==="be"&&["am","is","are"].includes(n))) return `La frase está en pasado (fíjate en «${q.time}»), así que el verbo va en pasado: «${c}».`;
+  if(!vb.reg && n===regular(b)) return `«${b}» es irregular, no se añade -ed. El pasado es «${c}».`;
+  if(b==="study" && n==="studyed") return `Si el verbo termina en consonante + y, la y cambia a i: «studied».`;
+  if(b==="stop" && n==="stoped") return `En «stop» se dobla la p antes de -ed: «stopped».`;
+  if(/e$/.test(b) && n===b+"ed") return `Si el verbo ya termina en -e, solo se añade -d: «${c}».`;
+  if(lev(n,c)<=2) return `¡Casi! Revisa la ortografía: «${c}».`;
+  return `La frase está en pasado (fíjate en «${q.time}»): lo correcto es «${c}».`;
+}
+function makeQ(v,type){
+  if(type==="tense") return makeTense(v);
+  if(type==="trio"){ const fromSpanish = Math.random()<0.4; return {v,type,fromSpanish}; }
+  if(type==="gap") return {v,type,k:pick([0,1,1])};
+  if(type==="choice"){ const k=1; const opts=shuffle([disp(v,k),...distractors(v,k)]); return {v,type,k,opts}; }
+  if(type==="sentence"){ const k=1; return {v,type,k,text:v.s[0],ans:(v.sa?v.sa[0]:formsOf(v)[1])}; }
+  if(type==="tf"){ const k=1; const truth=Math.random()<0.5; const shown = truth? disp(v,k) : pick(distractors(v,k)); return {v,type,k,truth,shown}; }
+}
+
+// ---------- state ----------
+let round=[], idx=0, results=[], streak=0, len=25, answered=false, sound=true, lastFailed=[];
+try{ const s=localStorage.getItem("ivc-sound"); if(s==="off") sound=false; }catch(e){}
+function setSoundBtn(){ $("soundBtn").textContent = "Sound: "+(sound?"on":"off"); $("soundBtn").setAttribute("aria-pressed", String(sound)); }
+setSoundBtn();
+$("soundBtn").onclick=()=>{ sound=!sound; setSoundBtn(); try{localStorage.setItem("ivc-sound", sound?"on":"off")}catch(e){} };
+let actx=null;
+function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+  const notes= ok?[660,880]:[300,220]; notes.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"sawtooth";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*0.11);g.gain.exponentialRampToValueAtTime(ok?0.18:0.08,t+i*0.11+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.11+0.16);
+  o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
+
+// start screen
+$("verbChips").innerHTML = VERBS.map(v=>`<span class="chip"><b>${v.b}</b></span>`).join("");
+document.querySelectorAll("#lenSeg button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#lenSeg button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true"); len=+b.dataset.n; });
+$("startBtn").onclick=()=>startRound();
+$("againBtn").onclick=()=>startRound();
+$("failBtn").onclick=()=>startRound(lastFailed.filter(v=>!v.reg));
+$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=!db; };
+
+function startRound(only){
+  const n = only && only.length ? Math.max(only.length*2, 8) : len;
+  round = buildRound(n, only); idx=0; results=[]; streak=0;
+  $("start").hidden=true; $("reports").hidden=true; $("results").hidden=true; $("final").hidden=true; $("quiz").hidden=false;
+  renderQ();
+}
+
+// ---------- render a question ----------
+function field(id,label){ return `<div class="field"><label for="${id}">${label}</label><input type="text" id="${id}" autocapitalize="off" spellcheck="false" autocomplete="off"></div>`; }
+function renderQ(){
+  const q = round[idx]; answered=false;
+  $("qCount").textContent = `Question ${idx+1} of ${round.length}`;
+  $("barFill").style.width = (idx/round.length*100)+"%";
+  updateHud();
+  $("qType").textContent = TYPES[q.type];
+  $("fb").hidden=true; $("checkBtn").hidden=false; $("nextBtn").hidden=true;
+  const v=q.v; let h="";
+  if(q.type==="trio"){
+    if(q.fromSpanish){
+      h=`<div class="prompt">Write the <b>present</b> and the <b>past</b> in English:</div><div class="big">«${v.es}»</div>
+         <div class="fields">${field("f0","Present")}${field("f1","Past")}</div>`;
+    } else {
+      h=`<div class="prompt">Write the <b>past</b> of:</div><div class="big">${v.b} <span class="es small">(${v.es})</span></div>
+         <div class="fields">${field("f1","Past")}</div>`;
+    }
+  } else if(q.type==="gap"){
+    const parts=[0,1].map(k=> k===q.k? `<input type="text" id="g" style="width:7.5em;display:inline-block" aria-label="${FORM_SHORT[k]}" autocapitalize="off" spellcheck="false">` : `<b>${disp(v,k)}</b>`);
+    h=`<div class="prompt">Write the missing form (${FORM_EN[q.k]}):</div>
+       <div class="big" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">${parts.join(" <span class='muted'>–</span> ")}</div>
+       <div class="es">${v.es}</div>`;
+  } else if(q.type==="choice"){
+    h=`<div class="prompt">What is the <b>past</b> of <b>${v.b}</b>?</div>
+       <div class="opts">${q.opts.map((o,i)=>`<button type="button" data-o="${i}">${o}</button>`).join("")}</div>`;
+  } else if(q.type==="sentence"){
+    const [a,b]=q.text.split("___");
+    h=`<div class="prompt">Complete with the <b>past</b> of <b>${v.b}</b>:</div>
+       <div class="sentence">${a}<input type="text" id="s" aria-label="respuesta" autocapitalize="off" spellcheck="false">${b}</div>`;
+  } else if(q.type==="tf"){
+    h=`<div class="prompt">Is it correct?</div>
+       <div class="big">The past of <u>${v.b}</u> is «${q.shown}»</div>
+       <div class="opts"><button type="button" data-tf="1">True</button><button type="button" data-tf="0">False</button></div>`;
+  }
+  if(q.type==="tense"){
+    const [a,b]=q.text.split("___");
+    h=`<div class="prompt">Write the verb in the correct tense: <b>present</b> or <b>past</b>.</div>
+       <div class="sentence">${a}<input type="text" id="s" aria-label="answer" autocapitalize="off" spellcheck="false"> <b>(${q.v.b})</b>${b}</div>`;
+  }
+  $("qBody").innerHTML=h;
+  if(q.type==="choice"||q.type==="tf"){ $("checkBtn").hidden=true;
+    $("qBody").querySelectorAll(".opts button").forEach(b=>b.onclick=()=>grade(b)); }
+  const first=$("qBody").querySelector("input"); if(first) setTimeout(()=>first.focus(),30);
+}
+function updateHud(){ const ok=results.filter(r=>r.ok).length; $("hudScore").textContent=`Correct: ${ok} · Streak: ${streak}`; }
+
+$("qForm").addEventListener("submit",e=>{ e.preventDefault(); if(answered) next(); else grade(); });
+$("nextBtn").onclick=next;
+
+function grade(btn){
+  if(answered) return;
+  const q=round[idx], v=q.v; let ok=true, fails=[], asked="", yours="", right="";
+  const isBe = v.b==="be";
+  if(q.type==="trio"){
+    const ks = q.fromSpanish?[0,1]:[1];
+    asked = q.fromSpanish? `Present and past of «${v.es}»` : `Past of «${v.b}»`;
+    const ys=[], rs=[];
+    ks.forEach(k=>{ const el=$("f"+k), val=el.value, exp=formsOf(v)[k];
+      const good = accepts(val,exp,isBe&&k===1);
+      el.classList.add(good?"ok":"ko"); el.readOnly=true;
+      ys.push(`${FORM_SHORT[k]}: ${val.trim()||"(empty)"}`); rs.push(disp(v,k));
+      if(!good){ ok=false; fails.push(`${FORM_SHORT[k]}: ${reason(val,v,k,exp)}`); } });
+    yours=ys.join(" · "); right=show(v);
+  } else if(q.type==="gap"){
+    const el=$("g"), exp=formsOf(v)[q.k]; ok=accepts(el.value,exp,isBe&&q.k===1);
+    el.classList.add(ok?"ok":"ko"); el.readOnly=true;
+    asked=`${[0,1].map(k=>k===q.k?"___":disp(v,k)).join(" – ")}`; yours=el.value.trim()||"(empty)"; right=show(v);
+    if(!ok) fails.push(reason(el.value,v,q.k,exp));
+  } else if(q.type==="choice"){
+    const chosen=q.opts[+btn.dataset.o], correct=disp(v,q.k); ok = chosen===correct;
+    $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const t=q.opts[+b.dataset.o];
+      if(t===correct) b.classList.add("ok"); else if(b===btn) b.classList.add("ko"); });
+    asked=`Past of «${v.b}»?`; yours=chosen; right=show(v);
+    if(!ok) fails.push(reason(chosen,v,q.k,formsOf(v)[q.k]));
+  } else if(q.type==="sentence"){
+    const el=$("s"); ok=accepts(el.value,q.ans,false); el.classList.add(ok?"ok":"ko"); el.readOnly=true;
+    asked=q.text.replace("___","____")+` (${v.b})`; yours=el.value.trim()||"(empty)"; right=q.text.replace("___",q.ans[0]);
+    if(!ok){ let r=reason(el.value,v,q.k,q.ans); if(isBe&&q.k===1&&norm(el.value)==="were") r="Con «I» el pasado de «be» es «was» (were se usa con you, we, they)."; fails.push(r); }
+  } else if(q.type==="tf"){
+    const said = btn.dataset.tf==="1"; ok = said===q.truth;
+    $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const val=b.dataset.tf==="1";
+      if(val===q.truth) b.classList.add("ok"); else if(b===btn) b.classList.add("ko"); });
+    asked=`The past of «${v.b}» is «${q.shown}»`; yours=said?"True":"False"; right=q.truth?"True":`False: it is «${disp(v,q.k)}»`;
+    if(!ok){ fails.push(q.truth? `Sí era correcto: ${FORM_NAME[q.k]} de «${v.b}» es «${q.shown}» (${show(v)}).`
+                               : `No era correcto. ${reason(q.shown,v,q.k,formsOf(v)[q.k])}`); }
+  }
+  if(q.type==="tense"){
+    const el=$("s"); ok=norm(el.value)===q.ans; el.classList.add(ok?"ok":"ko"); el.readOnly=true;
+    asked=q.text.replace("___",`____ (${v.b})`); yours=el.value.trim()||"(empty)"; right=q.text.replace("___",q.ans);
+    if(!ok) fails.push(tReason(el.value,q));
+  }
+  answered=true; streak = ok? streak+1 : 0;
+  results.push({ok,v,type:q.type,asked,yours,right,why:fails.join(" ")});
+  beep(ok);
+  const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
+  const cheers=["Great!","Well done!","Correct!","You're a star!","Perfect!"];
+  fb.innerHTML = ok ? `${pick(cheers)}${streak>=3?` ${streak} in a row!`:""}<small>${q.type==="tense"?right:show(v)}</small>`
+                    : `Oops! That's not right.<small>${fails.join("<br>")}</small>`;
+  $("checkBtn").hidden=true; $("nextBtn").hidden=false;
+  $("nextBtn").textContent = idx===round.length-1? "See results" : "Next";
+  setTimeout(()=>$("nextBtn").focus(),20);
+  updateHud();
+}
+function next(){ idx++; if(idx>=round.length) renderFinal(); else renderQ(); }
+
+// ---------- final table: all verbs, one word given per row ----------
+const ALT={buy:["comprar"],catch:["atrapar","coger","pillar"],come:["venir"],do:["hacer"],drink:["beber","tomar"],eat:["comer"],
+ get:["conseguir","recibir","obtener","coger"],give:["dar","regalar"],go:["ir"],hear:["oir","escuchar"],know:["saber","conocer"],
+ make:["hacer","fabricar","crear"],meet:["conocer","quedar","quedar con","encontrarse"],read:["leer"],run:["correr"],say:["decir"],see:["ver"],
+ send:["enviar","mandar"],tell:["contar","decir"],wear:["llevar puesto","llevar","vestir","ponerse"],be:["ser","estar","ser estar","ser o estar"],
+ forget:["olvidar"],take:["coger","tomar","llevar"],ring:["sonar","llamar"],think:["pensar","creer"]};
+const deacc=x=>norm(x).replace(/[()]/g,"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim();
+function esOk(input,v){ const n=deacc(input); if(!n) return false;
+  const parts=n.split(/\s*(?:,|\/| y | o )\s*/).filter(Boolean);
+  return parts.every(p=>ALT[v.b].some(a=>{a=deacc(a); return p===a||p===a+"se";})); }
+function esReason(input,v){ const n=deacc(input);
+  if(!n) return `No has escrito nada. «${v.b}» significa «${v.es}».`;
+  const o=VERBS.find(x=>x!==v && ALT[x.b].some(a=>deacc(a)===n));
+  if(o) return `«${input.trim()}» es «${o.b}». «${v.b}» significa «${v.es}».`;
+  return `«${v.b}» significa «${v.es}».`; }
+const COLS=["Spanish","Present","Past"];
+let finalRows=[];
+function renderFinal(){
+  $("quiz").hidden=true; $("final").hidden=false; $("finalFb").hidden=true;
+  $("finalCheck").hidden=false; $("finalNext").hidden=true;
+  finalRows=shuffle(VERBS).map(v=>({v,given:pick([0,1,2])}));
+  const txt=(v,c)=>c===0?v.es:c===1?v.b:v.p.join(" / ");
+  $("finalBody").innerHTML=finalRows.map((r,i)=>`<tr><td class="num">${i+1}</td>${[0,1,2].map(c=> c===r.given
+     ? `<td class="given">${txt(r.v,c)}</td>`
+     : `<td><input type="text" id="t${i}_${c}" aria-label="Row ${i+1}, ${COLS[c]}" autocapitalize="off" spellcheck="false"></td>`).join("")}</tr>`).join("");
+  const first=$("finalBody").querySelector("input"); if(first) setTimeout(()=>first.focus(),30);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+// Enter jumps to the next box instead of sending the table
+$("finalBody").addEventListener("keydown",e=>{ if(e.key!=="Enter") return; e.preventDefault();
+  const all=[...$("finalBody").querySelectorAll("input")]; const i=all.indexOf(e.target);
+  if(i>-1 && i<all.length-1) all[i+1].focus(); else $("finalCheck").focus(); });
+$("finalForm").addEventListener("submit",e=>e.preventDefault());
+$("finalCheck").onclick=()=>{
+  let good=0;
+  finalRows.forEach((r,i)=>{ const v=r.v, fails=[], ys=[];
+    [0,1,2].forEach(c=>{ if(c===r.given) return; const el=$(`t${i}_${c}`), val=el.value;
+      let ok, why="";
+      if(c===0){ ok=esOk(val,v); if(!ok) why=esReason(val,v); }
+      else { const k=c-1, exp=formsOf(v)[k]; ok=accepts(val,exp,v.b==="be"&&k===1); if(!ok) why=reason(val,v,k,exp); }
+      el.classList.add(ok?"ok":"ko"); el.readOnly=true;
+      if(!ok){ const fix=document.createElement("span"); fix.className="fix"; fix.textContent=c===0?v.es:c===1?v.b:v.p.join(" / "); el.after(fix);
+        fails.push(`${COLS[c]}: ${why}`); }
+      ys.push(`${COLS[c]}: ${val.trim()||"(empty)"}`); });
+    const ok=fails.length===0; if(ok) good++;
+    const g=r.given, gt=g===0?v.es:g===1?v.b:v.p.join(" / ");
+    results.push({ok,v,type:"table",asked:`${COLS[g]}: ${gt}`,yours:ys.join(" · "),right:`${v.es} – ${v.b} – ${v.p.join(" / ")}`,why:fails.join(" ")});
+  });
+  const fb=$("finalFb"); fb.hidden=false; fb.className="fb pop "+(good===finalRows.length?"ok":"ko");
+  fb.innerHTML=`${good} of ${finalRows.length} rows correct.<small>${good===finalRows.length?"Perfect table!":"The right answers are written in green under each mistake."}</small>`;
+  beep(good>=finalRows.length*0.75);
+  $("finalCheck").hidden=true; $("finalNext").hidden=false; setTimeout(()=>$("finalNext").focus(),20);
+};
+$("finalNext").onclick=()=>finish();
+
+// ---------- results ----------
+const STAR = f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;
+function finish(){
+  $("final").hidden=true; $("quiz").hidden=true; $("results").hidden=false;
+  const ok=results.filter(r=>r.ok), ko=results.filter(r=>!r.ok), pct=Math.round(ok.length/results.length*100);
+  const stars = pct>=95?3: pct>=75?2: pct>=50?1:0;
+  $("resTitle").textContent = pct===100? "Perfect! You know them all." : pct>=75? "Very good! You nearly have it." : pct>=50? "Good work, but keep practising." : "You need a bit more practice.";
+  $("resNum").textContent = `${ok.length}/${results.length}`;
+  $("resStars").innerHTML = [0,1,2].map(i=>STAR(i<stars)).join("");
+  $("resOk").textContent = `${ok.length} correct`; $("resKo").textContent = `${ko.length} wrong`;
+  $("missBlock").hidden = $("reviewBlock").hidden = ko.length===0;
+  $("missList").innerHTML = ko.map(r=>`<article><span class="tag" style="color:var(--muted)">${TYPES[r.type]}</span>
+     <span class="q">${r.asked}</span><span>Your answer: <span class="yours">${r.yours}</span></span>
+     <span>Correct answer: <span class="right">${r.right}</span></span><span class="small">Why (motivo): ${r.why}</span></article>`).join("");
+  const failedVerbs=[...new Set(ko.map(r=>r.v))]; lastFailed=failedVerbs;
+  $("reviewBody").innerHTML = failedVerbs.map(v=>`<tr><td><b>${v.b}</b></td><td>${v.p.join(" / ")}</td><td class="es">${v.es}</td></tr>`).join("");
+  $("failBtn").hidden = failedVerbs.length===0;
+  const okVerbs=[...new Set(ok.map(r=>r.v.b))];
+  $("okList").innerHTML = okVerbs.length? okVerbs.map(b=>`<span class="chip">${b}</span>`).join("") : `<span class="muted">None this time. Try again!</span>`;
+  buildReport(); saveReport(); $("reports").hidden=!db;
+  if(pct>=75) confetti();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+
+// ---------- informe ----------
+let dl=null;
+try{ window.claude?.use?.("downloads")?.then(d=>{ dl=d; $("dlBtn").hidden=!d; }).catch(()=>{}); }catch(e){}
+const dlMsg=t=>{ $("dlMsg").textContent=t; };
+const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+function reportHeader(title){
+  const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100);
+  return [title,"=".repeat(title.length),"Fecha: "+new Date().toLocaleString("es-ES"),"",
+    `Resultado: ${ok} de ${n} acertadas (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
+    `Acertadas: ${ok} · Falladas: ${n-ok}`,`Valoración: ${$("resTitle").textContent}`,""];
+}
+function reportQuestions(){
+  const L=["PREGUNTAS Y RESPUESTAS","----------------------"];
+  results.forEach((r,i)=>{ L.push(`${i+1}. [${TYPES[r.type]}] ${r.asked}`,`   Su respuesta: ${r.yours}`,`   Correcto: ${r.right}`,`   Resultado: ${r.ok?"ACERTADA":"FALLADA"}`);
+    if(!r.ok) L.push(`   Motivo: ${r.why}`); L.push(""); });
+  return L;
+}
+$("dlBtn").onclick=async()=>{
+  if(!dl) return; dlMsg("");
+  try{ await dl.save({filename:`${"informe-verbos-irregulares"}_${stamp()}.txt`, data:$("reportText").value.replace(/\n/g,"\r\n")}); dlMsg("Informe descargado."); }
+  catch(e){ const c=e&&e.code;
+    if(c==="declined") dlMsg("Descarga cancelada.");
+    else if(c==="rate_limited") dlMsg("Espera un momento y vuelve a intentarlo.");
+    else { $("dlBtn").hidden=true; dlMsg("La descarga no está disponible aquí. Usa «Copiar informe» y pégalo en un documento."); } }
+};
+// ---------- saved reports: stored automatically, no clicks needed ----------
+const GAME="Irregular Verbs";
+let db=null, repDocs=[];
+try{ window.claude?.use?.("db")?.then(d=>{ db=d; if(!d) return; $("reports").hidden = $("start").hidden && $("results").hidden; watchReports(); }).catch(()=>{}); }catch(e){}
+function watchReports(){
+  let timer=setTimeout(()=>{ $("repMsg").textContent="Saved reports can't be loaded right now."; },10000);
+  db.collection("reports").orderBy("at","desc").limit(50).onSnapshot(snap=>{
+    clearTimeout(timer); $("repMsg").textContent="";
+    repDocs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderReports();
+  }, ()=>{ clearTimeout(timer); $("repMsg").textContent="Saved reports can't be loaded right now."; });
+}
+function renderReports(){
+  const L=$("repList");
+  if(!repDocs.length){ L.innerHTML='<span class="muted">No saved reports yet. When a test is finished, its report appears here.</span>'; return; }
+  L.innerHTML="";
+  repDocs.forEach(r=>{
+    const row=document.createElement("div"); row.className="rep-row";
+    const info=document.createElement("div"); info.className="info";
+    info.textContent=`${new Date(r.at).toLocaleString("es-ES",{dateStyle:"short",timeStyle:"short"})} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    const btns=document.createElement("div"); btns.className="row";
+    const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Download";
+    b1.onclick=async()=>{ if(!dl){ $("repMsg").textContent="Download isn't available here: use Copy."; return; }
+      try{ await dl.save({filename:r.file||"informe.txt", data:r.text.replace(/\n/g,"\r\n")}); }catch(e){} };
+    const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copy";
+    b2.onclick=()=>{ try{ navigator.clipboard.writeText(r.text).then(()=>{$("repMsg").textContent="Report copied.";},()=>{$("repMsg").textContent="Copy didn't work here.";}); }catch(e){} };
+    if(dl) btns.append(b1); btns.append(b2); row.append(info,btns); L.append(row);
+  });
+}
+async function saveReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length;
+  const data={game:GAME, at:new Date().toISOString(), correct:ok, total:n, pct:Math.round(ok/n*100),
+    grade:(ok/n*10).toFixed(1).replace(".",","), valuation:$("resTitle").textContent,
+    file:`informe-verbos-irregulares_${stamp()}.txt`, text:$("reportText").value};
+  if(!db){ dlMsg("El informe no se ha podido guardar automáticamente aquí. Usa «Download report» o «Copy report»."); return; }
+  try{ await db.collection("reports").add(data); dlMsg("Informe guardado automáticamente en «Saved reports»."); }
+  catch(e){ dlMsg("El informe no se ha podido guardar automáticamente ("+(e&&e.code||"error")+"). Usa «Download report» o «Copy report»."); }
+}
+function autoSave(){ if(dl) $("dlBtn").onclick(); else dlMsg("No se ha podido descargar automáticamente aquí. Usa «Copy report» y pégalo en un documento."); }
+$("copyBtn").onclick=()=>{
+  const t=$("reportText"), txt=t.value;
+  const fallback=()=>{ t.closest("details").open=true; t.focus(); t.select(); dlMsg("Texto seleccionado: pulsa Ctrl+C (o Copiar) para copiarlo."); };
+  try{ navigator.clipboard.writeText(txt).then(()=>dlMsg("Informe copiado. Pégalo en Word, un correo o un documento."),fallback); }catch(e){ fallback(); }
+};
+
+function buildReport(){
+  const L=reportHeader("IRREGULAR VERBS CHALLENGE - INFORME").concat(reportQuestions());
+  if(lastFailed.length){ L.push("VERBOS PARA REPASAR","-------------------"); lastFailed.forEach(v=>L.push(`${v.b} - ${v.p.join(" / ")}  (${v.es})`)); }
+  else L.push("¡Sin fallos! No hay verbos para repasar.");
+  $("reportText").value=L.join("\n"); dlMsg("");
+}
+// ---------- confetti ----------
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"), x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const cols=["#ffc531","#2f5bea","#14905a","#d33c3c","#7d9bff"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:5+Math.random()*6,c:pick(cols)}));
+  let t=0; (function f(){ x.clearRect(0,0,c.width,c.height); ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;
+    x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(++t<220) requestAnimationFrame(f); else x.clearRect(0,0,c.width,c.height); })();
+}
+
+// ---------- local mode: the files are opened from a folder, outside Claude ----------
+const LOCAL = !(window.claude && window.claude.use);
+function saveFile(name,text){
+  const data=String(text).replace(/\r?\n/g,"\r\n");
+  const url=URL.createObjectURL(new Blob(["﻿"+data],{type:"text/plain;charset=utf-8"}));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000); return Promise.resolve({status:"saved"});
+}
+if(LOCAL){
+  const KEY="reports-informe-verbos-irregulares";
+  const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
+  try{ $("backLink").hidden=false; }catch(e){}
+  dl={ save:o=>saveFile(o.filename,o.data) };
+  $("dlBtn").hidden=false;
+  db={ collection:()=>({ add:async data=>{
+    try{ const list=loadLocal(); list.unshift({id:String(Date.now()),...data}); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
+    repDocs=loadLocal(); renderReports(); return {}; } }) };
+  repDocs=loadLocal(); renderReports();
+  $("reports").hidden = $("start").hidden && $("results").hidden;
+  const saveOnline=saveReport;
+  saveReport=async function(){
+    await saveOnline();
+    try{ await saveFile(`informe-verbos-irregulares_${stamp()}.txt`, $("reportText").value);
+      dlMsg("Informe guardado en «Saved reports» y descargado automáticamente en la carpeta de Descargas."); }catch(e){}
+  };
+}
+</script>
+
+</body>
+</html>

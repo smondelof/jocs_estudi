@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Question Words Challenge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one centered game card on notebook paper; four colour-coded categories (action/time/place/manner) */
+:root{
+  --bg:#effaf4; --paper:#ffffff; --ink:#1b2a24; --muted:#58706a; --line:#cfe5da;
+  --accent:#0f8a68; --accent-ink:#ffffff; --sun:#ffc531; --good:#14905a; --good-bg:#dff5ea;
+  --bad:#d33c3c; --bad-bg:#fde6e6; --chip:#e1f1e9;
+  --c-what:#e2593b; --c-when:#2f5bea; --c-where:#13916b; --c-how:#9b4fd1;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101c18; --paper:#182822; --ink:#eaf6f0; --muted:#9fbab0; --line:#2b4038;
+  --accent:#4fd1a5; --accent-ink:#0b1d17; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#22362e;
+  --c-what:#ff8a6b; --c-when:#7d9bff; --c-where:#4fd1a5; --c-how:#c58cf2; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#101c18; --paper:#182822; --ink:#eaf6f0; --muted:#9fbab0; --line:#2b4038;
+  --accent:#4fd1a5; --accent-ink:#0b1d17; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#22362e;
+  --c-what:#ff8a6b; --c-when:#7d9bff; --c-where:#4fd1a5; --c-how:#c58cf2; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px);background-size:100% 34px}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);margin:0;line-height:1.1;text-wrap:balance}
+h1 span{background:var(--sun);color:#1b2a24;padding:0 .25em;border-radius:6px;display:inline-block;transform:rotate(2deg)}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 6px 0 var(--line)}
+.muted{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);border-radius:999px;padding:3px 11px;font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font-family:var(--display);font-weight:600;font-size:1.05rem;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);transition:transform .08s}
+button:active{transform:translateY(3px)}
+button.ghost{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+button:disabled{cursor:default}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{background:var(--chip);color:var(--ink);box-shadow:0 3px 0 var(--line);padding:9px 14px;font-size:.98rem}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.legend div{border-radius:14px;padding:10px 12px;border:2px solid currentColor;display:flex;flex-direction:column;gap:2px;min-width:0}
+.legend b{font-family:var(--display);font-size:1.3rem}
+.legend span{color:var(--ink);font-size:.92rem}
+.what{color:var(--c-what)} .when{color:var(--c-when)} .where{color:var(--c-where)} .how{color:var(--c-how)}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:600}
+.bar{height:12px;background:var(--chip);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:999px;transition:width .3s}
+.tag{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.prompt{font-size:1.2rem}
+.dialog{display:flex;flex-direction:column;gap:10px}
+.bubble{border-radius:16px;padding:12px 16px;font-size:1.3rem;line-height:1.6;max-width:92%}
+.bubble.q{background:var(--chip);align-self:flex-start;border-bottom-left-radius:4px}
+.bubble.a{background:var(--bg);border:2px solid var(--line);align-self:flex-end;border-bottom-right-radius:4px}
+.bubble .who{display:block;font-family:var(--display);font-size:.8rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+.blank{display:inline-block;min-width:4.2em;border-bottom:3px solid var(--accent);text-align:center;font-family:var(--display);font-weight:700}
+.bubble input{font-family:var(--display);font-size:1.2rem;padding:4px 8px;width:6.5em;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+input.ok{border-color:var(--good);background:var(--good-bg)} input.ko{border-color:var(--bad);background:var(--bad-bg)}
+.hl{font-weight:700;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:4px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts button{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line);font-size:1.15rem}
+.opts button small{display:block;font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted)}
+.opts.one{grid-template-columns:1fr}
+.opts button.ok{background:var(--good);color:#fff} .opts button.ko{background:var(--bad);color:#fff}
+.opts button.ok small,.opts button.ko small{color:#fff}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ok{background:var(--good-bg);color:var(--good)} .fb.ko{background:var(--bad-bg);color:var(--bad)}
+.fb small{display:block;font-weight:400;color:var(--ink);margin-top:2px}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
+.stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat div{border-radius:12px;padding:8px 14px;font-family:var(--display);font-weight:600}
+.stat .g{background:var(--good-bg);color:var(--good)} .stat .b{background:var(--bad-bg);color:var(--bad)}
+.miss{display:flex;flex-direction:column;gap:10px}
+.miss article{border-left:5px solid var(--bad);background:var(--bg);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.miss .q{font-weight:700} .miss .yours{color:var(--bad)} .miss .right{color:var(--good);font-weight:700}
+.bycat{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.bycat div{border:2px solid currentColor;border-radius:12px;padding:8px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.bycat div span{display:block;color:var(--ink);font-family:var(--body);font-weight:400;font-size:.9rem}
+.small{font-size:.9rem}
+@media (max-width:440px){ .opts{grid-template-columns:1fr} .card{padding:16px} .bubble{max-width:100%} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease-out}
+textarea.report{width:100%;min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.45;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical}
+details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;margin-top:4px}
+.replist{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 12px}
+.rep-row .info{min-width:0;font-variant-numeric:tabular-nums}
+.rep-row button{padding:7px 12px;font-size:.92rem}
+.back{flex-basis:100%;font-family:var(--display);font-weight:600;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+#confetti{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <a class="back" id="backLink" href="../index.html" hidden>← All games</a>
+    <h1>Question <span>Words</span> Challenge</h1>
+    <button class="ghost" id="soundBtn" aria-pressed="true" type="button">Sound: on</button>
+  </header>
+
+  <section class="card" id="start">
+    <h2>What does each question word ask about?</h2>
+    <div class="legend">
+      <div class="what"><b>What?</b><span>Action<br>what someone does</span></div>
+      <div class="when"><b>When?</b><span>Time<br>when it happens</span></div>
+      <div class="where"><b>Where?</b><span>Place<br>where it is</span></div>
+      <div class="how"><b>How?</b><span>Manner<br>how it is done</span></div>
+    </div>
+    <p class="muted" style="margin:0">Every game mixes different questions: complete the question with the question word, write it yourself, classify it (action, time, place or manner), choose the right answer and guess the type of an answer. At the end you will see your correct answers, your mistakes and why.</p>
+    <div>
+      <div class="tag" style="margin-bottom:6px">How many questions?</div>
+      <div class="seg" id="lenSeg">
+        <button type="button" data-n="12" aria-pressed="false">12 · quick</button>
+        <button type="button" data-n="20" aria-pressed="true">20 · normal</button>
+        <button type="button" data-n="32" aria-pressed="false">32 · super challenge</button>
+      </div>
+    </div>
+    <div class="row"><button type="button" id="startBtn">Start!</button></div>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="hud"><span id="qCount"></span><span id="hudScore"></span></div>
+    <div class="bar"><i id="barFill" style="width:0%"></i></div>
+    <div class="tag" id="qType"></div>
+    <form id="qForm" autocomplete="off">
+      <div id="qBody" style="display:flex;flex-direction:column;gap:14px"></div>
+      <div id="fb" style="margin-top:14px" hidden></div>
+      <div class="row" style="margin-top:14px">
+        <button type="submit" id="checkBtn">Check</button>
+        <button type="button" id="nextBtn" hidden>Next</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card" id="results" hidden>
+    <h2 id="resTitle"></h2>
+    <div class="score">
+      <div class="num" id="resNum"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="stars" id="resStars"></div>
+        <div class="stat"><div class="g" id="resOk"></div><div class="b" id="resKo"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="tag" style="margin-bottom:8px">Score by question word</div>
+      <div class="bycat" id="byCat"></div>
+    </div>
+    <div id="missBlock">
+      <div class="tag" style="margin-bottom:8px">Mistakes and why</div>
+      <div class="miss" id="missList"></div>
+    </div>
+    <div id="reportBlock" style="display:flex;flex-direction:column;gap:8px">
+      <div class="tag">Test report</div>
+      <div class="row">
+        <button type="button" id="dlBtn" hidden>Download report (.txt)</button>
+        <button type="button" class="ghost" id="copyBtn">Copy report</button>
+      </div>
+      <span class="small muted" id="dlMsg" aria-live="polite"></span>
+      <details class="rep"><summary>Show report</summary><textarea class="report" id="reportText" readonly aria-label="Informe"></textarea></details>
+    </div>
+    <div class="row">
+      <button type="button" id="againBtn">Play again (new questions)</button>
+      <button type="button" class="ghost" id="failBtn">Practise my mistakes</button>
+      <button type="button" class="ghost" id="homeBtn">Home</button>
+    </div>
+  </section>
+
+  <!-- SAVED REPORTS (for the teacher) -->
+  <section class="card" id="reports" hidden>
+    <h2>Saved reports</h2>
+    <p class="muted small" style="margin:0">Every finished test is saved here automatically, so the teacher can check it. Newest first.</p>
+    <div class="replist" id="repList"><span class="muted">No saved reports yet. When a test is finished, its report appears here.</span></div>
+    <span class="small muted" id="repMsg" aria-live="polite"></span>
+  </section>
+</div>
+
+<script>
+const CAT = {
+  what:{W:"What", en:"Action", es:"acción", asks:"una acción (qué se hace)"},
+  when:{W:"When", en:"Time", es:"tiempo", asks:"el tiempo (cuándo)"},
+  where:{W:"Where", en:"Place", es:"lugar", asks:"un lugar (dónde)"},
+  how:{W:"How", en:"Manner", es:"modo", asks:"la manera (cómo)"}
+};
+const KEYS = ["what","when","where","how"];
+// q: question after the word · a: answer · c: the clue in the answer
+const BANK = [
+ {w:"what",q:"are you doing?",a:"I'm reading a book.",c:"reading a book"},
+ {w:"what",q:"do you do on Saturdays?",a:"I play football with my friends.",c:"play football"},
+ {w:"what",q:"is your mum doing?",a:"She is cooking dinner.",c:"cooking dinner"},
+ {w:"what",q:"does your dad do after work?",a:"He goes running.",c:"goes running"},
+ {w:"what",q:"are they playing?",a:"They are playing tennis.",c:"playing tennis"},
+ {w:"what",q:"did you do yesterday?",a:"I visited my grandma.",c:"visited my grandma"},
+ {w:"what",q:"do you like doing?",a:"I like drawing.",c:"drawing"},
+ {w:"what",q:"is the cat doing?",a:"It is sleeping.",c:"sleeping"},
+ {w:"what",q:"do you want to do now?",a:"I want to watch a film.",c:"watch a film"},
+ {w:"what",q:"did you eat for lunch?",a:"I ate a sandwich.",c:"ate a sandwich"},
+ {w:"when",q:"is your birthday?",a:"It's in December.",c:"in December"},
+ {w:"when",q:"do you get up?",a:"At seven o'clock.",c:"at seven o'clock"},
+ {w:"when",q:"do you go swimming?",a:"On Mondays.",c:"on Mondays"},
+ {w:"when",q:"did you go to London?",a:"Last summer.",c:"last summer"},
+ {w:"when",q:"is the English exam?",a:"On Friday.",c:"on Friday"},
+ {w:"when",q:"do you have lunch?",a:"At two o'clock.",c:"at two o'clock"},
+ {w:"when",q:"does the film start?",a:"At half past six.",c:"at half past six"},
+ {w:"when",q:"do you do your homework?",a:"After school.",c:"after school"},
+ {w:"when",q:"do you go to bed?",a:"At nine o'clock.",c:"at nine o'clock"},
+ {w:"when",q:"did you lose your tooth?",a:"Yesterday.",c:"yesterday"},
+ {w:"where",q:"do you live?",a:"I live in Barcelona.",c:"in Barcelona"},
+ {w:"where",q:"is my pencil?",a:"It's under the table.",c:"under the table"},
+ {w:"where",q:"do you play football?",a:"In the park.",c:"in the park"},
+ {w:"where",q:"did you go on holiday?",a:"To the beach.",c:"to the beach"},
+ {w:"where",q:"is the library?",a:"Next to the school.",c:"next to the school"},
+ {w:"where",q:"are my shoes?",a:"They are in your bedroom.",c:"in your bedroom"},
+ {w:"where",q:"does your grandma live?",a:"In a small village.",c:"in a small village"},
+ {w:"where",q:"do you buy bread?",a:"At the bakery.",c:"at the bakery"},
+ {w:"where",q:"is the cat?",a:"It's on the sofa.",c:"on the sofa"},
+ {w:"where",q:"do penguins live?",a:"In Antarctica.",c:"in Antarctica"},
+ {w:"how",q:"do you go to school?",a:"By bus.",c:"by bus"},
+ {w:"how",q:"does she sing?",a:"Very beautifully.",c:"very beautifully"},
+ {w:"how",q:"does your brother run?",a:"Very fast.",c:"very fast"},
+ {w:"how",q:"do you travel to Madrid?",a:"By train.",c:"by train"},
+ {w:"how",q:"does the teacher speak?",a:"Slowly and clearly.",c:"slowly and clearly"},
+ {w:"how",q:"do you open this box?",a:"Carefully, with scissors.",c:"carefully, with scissors"},
+ {w:"how",q:"does the dog eat?",a:"Very quickly.",c:"very quickly"},
+ {w:"how",q:"do you write your name?",a:"With a capital letter.",c:"with a capital letter"},
+ {w:"how",q:"do you say «gato» in English?",a:"You say «cat».",c:"you say «cat»"},
+ {w:"how",q:"do birds fly?",a:"With their wings.",c:"with their wings"},
+];
+const TYPES = {
+  fill:"Complete the question", write:"Write the question word", classify:"Classify the question",
+  answer:"Choose the answer", clue:"What type of answer is it?"
+};
+
+const $ = id => document.getElementById(id);
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a; };
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const full = it => `${CAT[it.w].W} ${it.q}`;
+const catLabel = k => CAT[k].en;
+const hlAns = it => it.a.replace(new RegExp(it.c.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i"), m=>`<span class="hl ${it.w}">${m}</span>`);
+
+// ---------- round ----------
+function buildRound(n, only){
+  const src = only && only.length ? only : BANK;
+  // balance the four question words, no repeated sentence until all are used
+  const byW = {}; KEYS.forEach(k=>byW[k]=shuffle(src.filter(x=>x.w===k)));
+  let items=[], ws=[];
+  const present = KEYS.filter(k=>byW[k].length);
+  while(items.length<n){
+    if(!ws.length) ws=shuffle(present);
+    const k=ws.pop(); if(!byW[k].length) byW[k]=shuffle(src.filter(x=>x.w===k));
+    items.push(byW[k].pop());
+  }
+  let types=[]; while(types.length<n) types=types.concat(shuffle(Object.keys(TYPES)));
+  return shuffle(items).map((it,i)=>makeQ(it,types[i]));
+}
+function makeQ(it,type){
+  const q={it,type};
+  if(type==="fill") q.opts=shuffle(KEYS);
+  if(type==="classify"||type==="clue") q.opts=shuffle(KEYS);
+  if(type==="answer"){
+    const others = shuffle(KEYS.filter(k=>k!==it.w)).slice(0,2).map(k=>pick(BANK.filter(x=>x.w===k)));
+    q.opts = shuffle([it,...others]);
+  }
+  return q;
+}
+
+// ---------- state ----------
+let round=[], idx=0, results=[], streak=0, len=20, answered=false, sound=true, lastFailed=[];
+try{ if(localStorage.getItem("qwc-sound")==="off") sound=false; }catch(e){}
+const setSoundBtn=()=>{ $("soundBtn").textContent="Sound: "+(sound?"on":"off"); $("soundBtn").setAttribute("aria-pressed",String(sound)); };
+setSoundBtn();
+$("soundBtn").onclick=()=>{ sound=!sound; setSoundBtn(); try{localStorage.setItem("qwc-sound",sound?"on":"off")}catch(e){} };
+let actx=null;
+function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+  (ok?[660,880]:[300,220]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"sawtooth";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*0.11);g.gain.exponentialRampToValueAtTime(ok?0.18:0.08,t+i*0.11+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.11+0.16);
+  o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
+
+document.querySelectorAll("#lenSeg button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#lenSeg button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true"); len=+b.dataset.n; });
+$("startBtn").onclick=()=>startRound();
+$("againBtn").onclick=()=>startRound();
+$("failBtn").onclick=()=>startRound(lastFailed);
+$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=!db; };
+
+function startRound(only){
+  const n = only && only.length ? Math.max(only.length*2,8) : len;
+  round=buildRound(n,only); idx=0; results=[]; streak=0;
+  $("start").hidden=true; $("reports").hidden=true; $("results").hidden=true; $("quiz").hidden=false; renderQ();
+}
+
+// ---------- render ----------
+function bubbles(qHtml, aHtml){
+  return `<div class="dialog"><div class="bubble q"><span class="who">Question</span>${qHtml}</div>${aHtml!==null?`<div class="bubble a"><span class="who">Answer</span>${aHtml}</div>`:""}</div>`;
+}
+function renderQ(){
+  const q=round[idx], it=q.it; answered=false;
+  $("qCount").textContent=`Question ${idx+1} of ${round.length}`;
+  $("barFill").style.width=(idx/round.length*100)+"%";
+  updateHud(); $("qType").textContent=TYPES[q.type];
+  $("fb").hidden=true; $("checkBtn").hidden=true; $("nextBtn").hidden=true;
+  let h="";
+  if(q.type==="fill"){
+    h=`<div class="prompt">Read the answer and choose the missing question word:</div>
+       ${bubbles(`<span class="blank">___</span> ${it.q}`, it.a)}
+       <div class="opts">${q.opts.map(k=>`<button type="button" data-k="${k}">${CAT[k].W}</button>`).join("")}</div>`;
+  } else if(q.type==="write"){
+    h=`<div class="prompt">Write the missing question word:</div>
+       ${bubbles(`<input type="text" id="w" aria-label="question word" autocapitalize="off" spellcheck="false"> ${it.q}`, it.a)}`;
+    $("checkBtn").hidden=false;
+  } else if(q.type==="classify"){
+    h=`<div class="prompt">What type of question word is it?</div>
+       ${bubbles(`<b>${CAT[it.w].W}</b> ${it.q}`, null)}
+       <div class="opts">${q.opts.map(k=>`<button type="button" data-k="${k}">${CAT[k].en}</button>`).join("")}</div>`;
+  } else if(q.type==="answer"){
+    h=`<div class="prompt">Which is the right answer?</div>
+       ${bubbles(`<b>${CAT[it.w].W}</b> ${it.q}`, null)}
+       <div class="opts one">${q.opts.map((o,i)=>`<button type="button" data-i="${i}">${o.a}</button>`).join("")}</div>`;
+  } else if(q.type==="clue"){
+    h=`<div class="prompt">What type of answer is this? Which question word asks for it?</div>
+       ${bubbles(`<span class="blank">???</span>`, it.a)}
+       <div class="opts">${q.opts.map(k=>`<button type="button" data-k="${k}">${CAT[k].en} · ${CAT[k].W}</button>`).join("")}</div>`;
+  }
+  $("qBody").innerHTML=h;
+  $("qBody").querySelectorAll(".opts button").forEach(b=>b.onclick=()=>grade(b));
+  const inp=$("qBody").querySelector("input"); if(inp) setTimeout(()=>inp.focus(),30);
+}
+function updateHud(){ $("hudScore").textContent=`Correct: ${results.filter(r=>r.ok).length} · Streak: ${streak}`; }
+
+$("qForm").addEventListener("submit",e=>{ e.preventDefault(); if(answered) next(); else if(round[idx].type==="write") grade(); });
+$("nextBtn").onclick=next;
+
+// why the right word is right
+const because = it => `La respuesta «${it.a}» habla de ${CAT[it.w].asks}: «${it.c}». Por eso es ${CAT[it.w].W} → ${catLabel(it.w)}.`;
+function grade(btn){
+  if(answered) return;
+  const q=round[idx], it=q.it; let ok, yours, asked, right, why="";
+  if(q.type==="fill"||q.type==="classify"||q.type==="clue"){
+    const k=btn.dataset.k; ok = k===it.w;
+    $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; if(b.dataset.k===it.w) b.classList.add("ok"); else if(b===btn) b.classList.add("ko"); });
+    if(q.type==="fill"){
+      asked=`___ ${it.q} — ${it.a}`; yours=CAT[k].W; right=full(it);
+      if(!ok) why=`${CAT[k].W} pregunta por ${CAT[k].asks}. ${because(it)}`;
+    } else if(q.type==="classify"){
+      asked=full(it); yours=catLabel(k); right=catLabel(it.w);
+      if(!ok) why=`${CAT[it.w].W} siempre pregunta por ${CAT[it.w].asks}, así que es ${catLabel(it.w)}. ${catLabel(k)} corresponde a ${CAT[k].W}.`;
+    } else {
+      asked=`Answer: «${it.a}»`; yours=`${CAT[k].en} · ${CAT[k].W}`; right=`${CAT[it.w].en} · ${full(it)}`;
+      if(!ok) why=`«${it.c}» indica ${CAT[it.w].asks}, no ${CAT[k].asks}. La pregunta era: ${full(it)}`;
+    }
+  } else if(q.type==="write"){
+    const el=$("w"), val=el.value.trim(), n=val.toLowerCase().replace(/[?.!]/g,"");
+    ok = n===it.w; el.classList.add(ok?"ok":"ko"); el.readOnly=true;
+    asked=`___ ${it.q} — ${it.a}`; yours=val||"(empty)"; right=full(it);
+    if(!ok){
+      if(!n) why=`No has escrito nada. ${because(it)}`;
+      else if(KEYS.includes(n)) why=`${CAT[n].W} pregunta por ${CAT[n].asks}. ${because(it)}`;
+      else if(["wat","whath","wen","whem","were","wher","whear","hou","haw","hw"].includes(n)||KEYS.some(k=>lev(n,k)<=2))
+        why=`¡Casi! Revisa la ortografía: se escribe «${it.w}». ${because(it)}`;
+      else why=because(it);
+    }
+  } else if(q.type==="answer"){
+    const o=q.opts[+btn.dataset.i]; ok = o===it;
+    $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const x=q.opts[+b.dataset.i]; if(x===it) b.classList.add("ok"); else if(b===btn) b.classList.add("ko"); });
+    asked=full(it); yours=o.a; right=it.a;
+    if(!ok) why=`${CAT[it.w].W} pregunta por ${CAT[it.w].asks}, pero «${o.a}» habla de ${CAT[o.w].asks} («${o.c}»), que sería una pregunta con ${CAT[o.w].W}.`;
+  }
+  answered=true; streak= ok? streak+1 : 0;
+  results.push({ok,it,type:q.type,asked,yours,right,why});
+  beep(ok);
+  const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
+  fb.innerHTML = ok ? `${pick(["Great!","Well done!","Correct!","You're a star!","Perfect!"])}${streak>=3?` ${streak} in a row!`:""}<small>${full(it)} — ${hlAns(it)} · ${catLabel(it.w)}</small>`
+                    : `Oops! That's not right.<small>${why}</small>`;
+  $("checkBtn").hidden=true; $("nextBtn").hidden=false;
+  $("nextBtn").textContent= idx===round.length-1? "See results":"Next";
+  setTimeout(()=>$("nextBtn").focus(),20); updateHud();
+}
+function lev(a,b){const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+function next(){ idx++; if(idx>=round.length) finish(); else renderQ(); }
+
+// ---------- results ----------
+const STAR=f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;
+function finish(){
+  $("quiz").hidden=true; $("results").hidden=false;
+  const ok=results.filter(r=>r.ok), ko=results.filter(r=>!r.ok), pct=Math.round(ok.length/results.length*100);
+  const stars=pct>=95?3:pct>=75?2:pct>=50?1:0;
+  $("resTitle").textContent = pct===100?"Perfect! You know all the question words.":pct>=75?"Very good! You nearly have it.":pct>=50?"Good work, but keep practising.":"You need a bit more practice.";
+  $("resNum").textContent=`${ok.length}/${results.length}`;
+  $("resStars").innerHTML=[0,1,2].map(i=>STAR(i<stars)).join("");
+  $("resOk").textContent=`${ok.length} correct`; $("resKo").textContent=`${ko.length} wrong`;
+  $("byCat").innerHTML=KEYS.map(k=>{const r=results.filter(x=>x.it.w===k); const g=r.filter(x=>x.ok).length;
+    return `<div class="${k}">${CAT[k].W} ${g}/${r.length}<span>${catLabel(k)}</span></div>`;}).join("");
+  $("missBlock").hidden = ko.length===0;
+  $("missList").innerHTML = ko.map(r=>`<article><span class="tag" style="color:var(--muted)">${TYPES[r.type]}</span>
+     <span class="q">${r.asked}</span><span>Your answer: <span class="yours">${r.yours}</span></span>
+     <span>Correct answer: <span class="right">${r.right}</span></span><span class="small">Why (motivo): ${r.why}</span></article>`).join("");
+  const fw=new Set(ko.map(r=>r.it.w)); lastFailed=BANK.filter(x=>fw.has(x.w));
+  $("failBtn").hidden = ko.length===0;
+  buildReport(); saveReport(); $("reports").hidden=!db;
+  if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ---------- informe ----------
+let dl=null;
+try{ window.claude?.use?.("downloads")?.then(d=>{ dl=d; $("dlBtn").hidden=!d; }).catch(()=>{}); }catch(e){}
+const dlMsg=t=>{ $("dlMsg").textContent=t; };
+const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+function reportHeader(title){
+  const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100);
+  return [title,"=".repeat(title.length),"Fecha: "+new Date().toLocaleString("es-ES"),"",
+    `Resultado: ${ok} de ${n} acertadas (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
+    `Acertadas: ${ok} · Falladas: ${n-ok}`,`Valoración: ${$("resTitle").textContent}`,""];
+}
+function reportQuestions(){
+  const L=["PREGUNTAS Y RESPUESTAS","----------------------"];
+  results.forEach((r,i)=>{ L.push(`${i+1}. [${TYPES[r.type]}] ${r.asked}`,`   Su respuesta: ${r.yours}`,`   Correcto: ${r.right}`,`   Resultado: ${r.ok?"ACERTADA":"FALLADA"}`);
+    if(!r.ok) L.push(`   Motivo: ${r.why}`); L.push(""); });
+  return L;
+}
+$("dlBtn").onclick=async()=>{
+  if(!dl) return; dlMsg("");
+  try{ await dl.save({filename:`${"informe-question-words"}_${stamp()}.txt`, data:$("reportText").value.replace(/\n/g,"\r\n")}); dlMsg("Informe descargado."); }
+  catch(e){ const c=e&&e.code;
+    if(c==="declined") dlMsg("Descarga cancelada.");
+    else if(c==="rate_limited") dlMsg("Espera un momento y vuelve a intentarlo.");
+    else { $("dlBtn").hidden=true; dlMsg("La descarga no está disponible aquí. Usa «Copiar informe» y pégalo en un documento."); } }
+};
+// ---------- saved reports: stored automatically, no clicks needed ----------
+const GAME="Question Words";
+let db=null, repDocs=[];
+try{ window.claude?.use?.("db")?.then(d=>{ db=d; if(!d) return; $("reports").hidden = $("start").hidden && $("results").hidden; watchReports(); }).catch(()=>{}); }catch(e){}
+function watchReports(){
+  let timer=setTimeout(()=>{ $("repMsg").textContent="Saved reports can't be loaded right now."; },10000);
+  db.collection("reports").orderBy("at","desc").limit(50).onSnapshot(snap=>{
+    clearTimeout(timer); $("repMsg").textContent="";
+    repDocs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderReports();
+  }, ()=>{ clearTimeout(timer); $("repMsg").textContent="Saved reports can't be loaded right now."; });
+}
+function renderReports(){
+  const L=$("repList");
+  if(!repDocs.length){ L.innerHTML='<span class="muted">No saved reports yet. When a test is finished, its report appears here.</span>'; return; }
+  L.innerHTML="";
+  repDocs.forEach(r=>{
+    const row=document.createElement("div"); row.className="rep-row";
+    const info=document.createElement("div"); info.className="info";
+    info.textContent=`${new Date(r.at).toLocaleString("es-ES",{dateStyle:"short",timeStyle:"short"})} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    const btns=document.createElement("div"); btns.className="row";
+    const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Download";
+    b1.onclick=async()=>{ if(!dl){ $("repMsg").textContent="Download isn't available here: use Copy."; return; }
+      try{ await dl.save({filename:r.file||"informe.txt", data:r.text.replace(/\n/g,"\r\n")}); }catch(e){} };
+    const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copy";
+    b2.onclick=()=>{ try{ navigator.clipboard.writeText(r.text).then(()=>{$("repMsg").textContent="Report copied.";},()=>{$("repMsg").textContent="Copy didn't work here.";}); }catch(e){} };
+    if(dl) btns.append(b1); btns.append(b2); row.append(info,btns); L.append(row);
+  });
+}
+async function saveReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length;
+  const data={game:GAME, at:new Date().toISOString(), correct:ok, total:n, pct:Math.round(ok/n*100),
+    grade:(ok/n*10).toFixed(1).replace(".",","), valuation:$("resTitle").textContent,
+    file:`informe-question-words_${stamp()}.txt`, text:$("reportText").value};
+  if(!db){ dlMsg("El informe no se ha podido guardar automáticamente aquí. Usa «Download report» o «Copy report»."); return; }
+  try{ await db.collection("reports").add(data); dlMsg("Informe guardado automáticamente en «Saved reports»."); }
+  catch(e){ dlMsg("El informe no se ha podido guardar automáticamente ("+(e&&e.code||"error")+"). Usa «Download report» o «Copy report»."); }
+}
+function autoSave(){ if(dl) $("dlBtn").onclick(); else dlMsg("No se ha podido descargar automáticamente aquí. Usa «Copy report» y pégalo en un documento."); }
+$("copyBtn").onclick=()=>{
+  const t=$("reportText"), txt=t.value;
+  const fallback=()=>{ t.closest("details").open=true; t.focus(); t.select(); dlMsg("Texto seleccionado: pulsa Ctrl+C (o Copiar) para copiarlo."); };
+  try{ navigator.clipboard.writeText(txt).then(()=>dlMsg("Informe copiado. Pégalo en Word, un correo o un documento."),fallback); }catch(e){ fallback(); }
+};
+
+function buildReport(){
+  const L=reportHeader("QUESTION WORDS CHALLENGE - INFORME");
+  L.push("ACIERTOS POR QUESTION WORD","--------------------------");
+  KEYS.forEach(k=>{const r=results.filter(x=>x.it.w===k); L.push(`${CAT[k].W} (${catLabel(k)}): ${r.filter(x=>x.ok).length} de ${r.length}`);});
+  L.push("");
+  const strip=h=>h.replace(/<[^>]+>/g,"");
+  const Q=reportQuestions().map(strip);
+  $("reportText").value=L.concat(Q,["RECUERDA","--------","What = Action (acción) · When = Time (tiempo) · Where = Place (lugar) · How = Manner (modo)"]).join("\n"); dlMsg("");
+}
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const cols=["#ffc531","#e2593b","#2f5bea","#13916b","#9b4fd1"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:5+Math.random()*6,c:pick(cols)}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(++t<220)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+}
+
+// ---------- local mode: the files are opened from a folder, outside Claude ----------
+const LOCAL = !(window.claude && window.claude.use);
+function saveFile(name,text){
+  const data=String(text).replace(/\r?\n/g,"\r\n");
+  const url=URL.createObjectURL(new Blob(["﻿"+data],{type:"text/plain;charset=utf-8"}));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000); return Promise.resolve({status:"saved"});
+}
+if(LOCAL){
+  const KEY="reports-informe-question-words";
+  const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
+  try{ $("backLink").hidden=false; }catch(e){}
+  dl={ save:o=>saveFile(o.filename,o.data) };
+  $("dlBtn").hidden=false;
+  db={ collection:()=>({ add:async data=>{
+    try{ const list=loadLocal(); list.unshift({id:String(Date.now()),...data}); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
+    repDocs=loadLocal(); renderReports(); return {}; } }) };
+  repDocs=loadLocal(); renderReports();
+  $("reports").hidden = $("start").hidden && $("results").hidden;
+  const saveOnline=saveReport;
+  saveReport=async function(){
+    await saveOnline();
+    try{ await saveFile(`informe-question-words_${stamp()}.txt`, $("reportText").value);
+      dlMsg("Informe guardado en «Saved reports» y descargado automáticamente en la carpeta de Descargas."); }catch(e){}
+  };
+}
+</script>
+
+</body>
+</html>
