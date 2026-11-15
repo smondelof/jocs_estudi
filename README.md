@@ -9,6 +9,7 @@ Obre `index.html` (o la web publicada amb GitHub Pages) i tria una assignatura.
 - `index.html` – portal amb totes les assignatures
 - `angles/` – jocs d'anglès
 - `catala/` – jocs de català
+- `mates/` – jocs de matemàtiques
 
 ## Afegir un joc
 

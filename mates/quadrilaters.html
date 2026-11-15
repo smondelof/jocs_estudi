@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quadrilàters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one centered game card on squared (graph) paper; three parts: true/false, classify a drawing, find the shapes in a scene */
+:root{
+  --bg:#eef8f2; --paper:#ffffff; --ink:#18291f; --muted:#5b7466; --line:#cfe6d8; --grid:#dcefe3;
+  --accent:#0f8a68; --accent-ink:#ffffff; --sun:#ffc531; --good:#14905a; --good-bg:#dff5ea;
+  --bad:#d33c3c; --bad-bg:#fde6e6; --chip:#e0f2e8; --stroke:#18291f;
+  --f1:#ffd166; --f2:#8ecae6; --f3:#f4a3b8; --f4:#b8e0a0; --f5:#cdb4f7; --f6:#ffb07c; --f7:#9ee6d8; --f8:#f7e08a;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1a14; --paper:#17251d; --ink:#e6f5ec; --muted:#9fbfae; --line:#2a4234; --grid:#1d3026;
+  --accent:#4fd1a5; --accent-ink:#0b1d15; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#21362a; --stroke:#e6f5ec;
+  --f1:#b8912f; --f2:#3f7f99; --f3:#a65468; --f4:#5f8f47; --f5:#7a5fae; --f6:#b3683a; --f7:#3f9c8c; --f8:#a8923a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1a14; --paper:#17251d; --ink:#e6f5ec; --muted:#9fbfae; --line:#2a4234; --grid:#1d3026;
+  --accent:#4fd1a5; --accent-ink:#0b1d15; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#21362a; --stroke:#e6f5ec;
+  --f1:#b8912f; --f2:#3f7f99; --f3:#a65468; --f4:#5f8f47; --f5:#7a5fae; --f6:#b3683a; --f7:#3f9c8c; --f8:#a8923a; color-scheme:dark }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),linear-gradient(90deg,var(--grid) 1px, transparent 1px);background-size:24px 24px}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.back{flex-basis:100%;font-family:var(--display);font-weight:600;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);margin:0;line-height:1.1}
+h1 span{background:var(--sun);color:#18291f;padding:0 .25em;border-radius:6px;display:inline-block;transform:rotate(-2deg)}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 6px 0 var(--line)}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font-family:var(--display);font-weight:600;font-size:1.05rem;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);transition:transform .08s}
+button:active{transform:translateY(3px)}
+button.ghost{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+button:disabled{cursor:default}
+button:focus-visible,a:focus-visible,polygon:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.tag{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:600}
+.bar{height:12px;background:var(--chip);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:999px;transition:width .3s}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps span{font-family:var(--display);font-size:.85rem;font-weight:600;border-radius:999px;padding:3px 12px;background:var(--chip);color:var(--muted)}
+.steps span.on{background:var(--accent);color:var(--accent-ink)}
+.steps span.done{background:var(--good-bg);color:var(--good)}
+/* theory */
+.theory{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.theory .col{background:var(--bg);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.theory h3{font-family:var(--display);font-size:1.05rem;margin:0}
+.theory .shapes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.theory figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.theory figure svg{width:100%;max-width:120px;height:auto}
+.theory figcaption{font-family:var(--display);font-weight:600;font-size:.95rem}
+.theory figcaption small{display:block;font-family:var(--body);font-weight:400;font-size:.78rem;color:var(--muted);line-height:1.3}
+details.th summary{cursor:pointer;font-family:var(--display);font-weight:600;color:var(--accent)}
+.modes{display:flex;gap:10px;flex-wrap:wrap}
+/* questions */
+.prompt{font-size:1.25rem}
+.statement{font-family:var(--display);font-weight:600;font-size:clamp(1.3rem,4vw,1.6rem);line-height:1.3;background:var(--bg);border-radius:14px;padding:16px 18px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts button{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line);font-size:1.15rem;padding:14px}
+.opts button.ok{background:var(--good);color:#fff} .opts button.ko{background:var(--bad);color:#fff}
+.stage{background:var(--bg);border-radius:16px;padding:8px;display:flex;justify-content:center}
+.stage svg{width:100%;height:auto;display:block}
+.stage.single svg{max-width:340px}
+svg polygon.fig{stroke:var(--stroke);stroke-width:3;stroke-linejoin:round}
+svg polygon.pick{cursor:pointer;transition:filter .15s}
+svg polygon.pick:hover{filter:brightness(1.08) drop-shadow(0 0 4px var(--accent))}
+svg polygon.found{fill:var(--good)!important;cursor:default}
+svg polygon.wrongpick{fill:var(--bad)!important}
+svg polygon.show{stroke:var(--good);stroke-width:6}
+svg text.lbl{font-family:var(--display);font-weight:700;font-size:20px;fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:5px;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.target{font-family:var(--display);font-weight:700;font-size:1.5rem;color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);border-radius:999px;padding:3px 11px;font-size:.92rem}
+.chip.ok{background:var(--good-bg);color:var(--good);font-weight:700}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ok{background:var(--good-bg);color:var(--good)} .fb.ko{background:var(--bad-bg);color:var(--bad)}
+.fb small{display:block;font-weight:400;color:var(--ink);margin-top:2px}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
+.stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat div{border-radius:12px;padding:8px 14px;font-family:var(--display);font-weight:600}
+.stat .g{background:var(--good-bg);color:var(--good)} .stat .b{background:var(--bad-bg);color:var(--bad)}
+.bycat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.bycat div{background:var(--bg);border-radius:12px;padding:8px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.bycat span{display:block;font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted)}
+.miss{display:flex;flex-direction:column;gap:10px}
+.miss article{border-left:5px solid var(--bad);background:var(--bg);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.miss .q{font-weight:700} .miss .yours{color:var(--bad)} .miss .right{color:var(--good);font-weight:700}
+textarea.report{width:100%;min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.45;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical}
+details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;margin-top:4px}
+.replist{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 12px}
+.rep-row .info{min-width:0;font-variant-numeric:tabular-nums}
+.rep-row button{padding:7px 12px;font-size:.92rem}
+@media (max-width:520px){ .card{padding:16px} .theory{grid-template-columns:1fr} .opts{grid-template-columns:1fr 1fr} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease-out}
+#confetti{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <a class="back" href="../index.html">← Tots els jocs</a>
+    <h1>Els <span>Quadrilàters</span></h1>
+    <button class="ghost" id="soundBtn" aria-pressed="true" type="button">So: sí</button>
+  </header>
+
+  <section class="card" id="start">
+    <h2>Paral·lelograms i no paral·lelograms</h2>
+    <p class="muted" style="margin:0">Un quadrilàter té 4 costats. Si té els costats oposats paral·lels dos a dos, és un <b>paral·lelogram</b>. Si no, és un <b>no paral·lelogram</b>.</p>
+    <details class="th" open><summary>Repassa les figures</summary><div class="theory" id="theory" style="margin-top:10px"></div></details>
+    <div>
+      <div class="tag" style="margin-bottom:8px">Tria què vols fer</div>
+      <div class="modes">
+        <button type="button" data-mode="all">Prova completa</button>
+        <button type="button" class="ghost" data-mode="tf">1 · Vertader o fals</button>
+        <button type="button" class="ghost" data-mode="cls">2 · Classifica</button>
+        <button type="button" class="ghost" data-mode="find">3 · Troba les figures</button>
+      </div>
+    </div>
+    <p class="muted small" style="margin:0">Cada vegada les preguntes, les figures i el dibuix són diferents.</p>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="steps" id="steps"></div>
+    <div class="hud"><span id="qCount"></span><span id="hudScore"></span></div>
+    <div class="bar"><i id="barFill" style="width:0%"></i></div>
+    <div class="tag" id="qType"></div>
+    <div id="qBody" style="display:flex;flex-direction:column;gap:14px"></div>
+    <div id="fb" hidden></div>
+    <div class="row"><button type="button" id="nextBtn" hidden>Següent</button></div>
+  </section>
+
+  <section class="card" id="results" hidden>
+    <h2 id="resTitle"></h2>
+    <div class="score">
+      <div class="num" id="resNum"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="stars" id="resStars"></div>
+        <div class="stat"><div class="g" id="resOk"></div><div class="b" id="resKo"></div></div>
+      </div>
+    </div>
+    <div><div class="tag" style="margin-bottom:8px">Encerts per part</div><div class="bycat" id="byCat"></div></div>
+    <div id="missBlock"><div class="tag" style="margin-bottom:8px">Errors i per què</div><div class="miss" id="missList"></div></div>
+    <div id="reportBlock" style="display:flex;flex-direction:column;gap:8px">
+      <div class="tag">Informe de la prova</div>
+      <div class="row">
+        <button type="button" id="dlBtn">Descarrega l'informe (.txt)</button>
+        <button type="button" class="ghost" id="copyBtn">Copia l'informe</button>
+      </div>
+      <span class="small muted" id="dlMsg" aria-live="polite"></span>
+      <details class="rep"><summary>Mostra l'informe</summary><textarea class="report" id="reportText" readonly aria-label="Informe"></textarea></details>
+    </div>
+    <div class="row">
+      <button type="button" id="againBtn">Torna a jugar (tot nou)</button>
+      <button type="button" class="ghost" id="homeBtn">Inici</button>
+    </div>
+  </section>
+
+  <section class="card" id="reports" hidden>
+    <h2>Informes desats</h2>
+    <p class="muted small" style="margin:0">Cada prova acabada es desa aquí automàticament perquè el mestre la pugui revisar. Els més nous primer.</p>
+    <div class="replist" id="repList"></div>
+    <span class="small muted" id="repMsg" aria-live="polite"></span>
+  </section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+// ---------- the six shapes ----------
+const SH={
+  quadrat:{name:"quadrat",art:"el",para:true,desc:"4 costats iguals i 4 angles rectes.",
+    why:"té els costats oposats paral·lels, els 4 costats iguals i els 4 angles rectes"},
+  rectangle:{name:"rectangle",art:"el",para:true,desc:"Costats oposats iguals i 4 angles rectes.",
+    why:"té els costats oposats paral·lels i iguals, i els 4 angles rectes"},
+  rombe:{name:"rombe",art:"el",para:true,desc:"4 costats iguals, però cap angle recte.",
+    why:"té els costats oposats paral·lels i els 4 costats iguals, però no té angles rectes"},
+  romboide:{name:"romboide",art:"el",para:true,desc:"Costats oposats iguals, sense angles rectes.",
+    why:"té els costats oposats paral·lels i iguals, però no té angles rectes"},
+  trapezi:{name:"trapezi",art:"el",para:false,desc:"Només 2 costats paral·lels.",
+    why:"només té un parell de costats paral·lels"},
+  trapezoide:{name:"trapezoide",art:"el",para:false,desc:"Cap costat paral·lel.",
+    why:"no té cap costat paral·lel"},
+};
+const KEYS=Object.keys(SH);
+
+// random geometry, centred on (0,0), about 150 units wide
+function pts(type){
+  if(type==="quadrat"){ const s=rnd(80,100)/2; return [[-s,-s],[s,-s],[s,s],[-s,s]]; }
+  if(type==="rectangle"){ const w=rnd(130,160)/2, h=w*rnd(.42,.58); return [[-w,-h],[w,-h],[w,h],[-w,h]]; }
+  if(type==="rombe"){ const a=rnd(62,78), b=a*rnd(.5,.62); return Math.random()<.5?[[0,-b],[a,0],[0,b],[-a,0]]:[[0,-a],[b,0],[0,a],[-b,0]]; }
+  if(type==="romboide"){ let w,h,sh; do{ w=rnd(100,125); h=rnd(55,70); sh=rnd(32,46)*(Math.random()<.5?1:-1); }while(Math.abs(Math.hypot(sh,h)-w)<22);
+    return [[-w/2+sh/2,-h/2],[w/2+sh/2,-h/2],[w/2-sh/2,h/2],[-w/2-sh/2,h/2]]; }
+  if(type==="trapezi"){ const B=rnd(135,160), T=B*rnd(.38,.6), h=rnd(60,78), v=pick(["iso","rect","esc"]);
+    const x0= v==="iso"? -T/2 : v==="rect"? (Math.random()<.5?-B/2:B/2-T) : rnd(-B/2+5,B/2-T-5);
+    const p=[[-B/2,h/2],[B/2,h/2],[x0+T,-h/2],[x0,-h/2]]; return Math.random()<.5?p:p.map(([x,y])=>[x,-y]); }
+  if(type==="trapezoide"){
+    for(let t=0;t<200;t++){
+      const base=rnd(0,90), p=[0,1,2,3].map(i=>{ const ang=(base+i*90+rnd(-28,28))*Math.PI/180, r=rnd(55,85); return [Math.cos(ang)*r,Math.sin(ang)*r]; });
+      if(convex(p) && !parallel(p[0],p[1],p[2],p[3]) && !parallel(p[1],p[2],p[3],p[0])) return p;
+    }
+    return [[-70,40],[60,55],[40,-50],[-30,-40]];
+  }
+  if(type==="triangle"){ const r=rnd(60,75), b=rnd(0,360); return [0,1,2].map(i=>{const a=(b+i*120+rnd(-15,15))*Math.PI/180;return [Math.cos(a)*r,Math.sin(a)*r];}); }
+  if(type==="pentagon"){ const r=rnd(55,68), b=rnd(0,72); return [0,1,2,3,4].map(i=>{const a=(b+i*72)*Math.PI/180;return [Math.cos(a)*r,Math.sin(a)*r];}); }
+}
+function convex(p){ let s=0; for(let i=0;i<p.length;i++){ const [a,b,c]=[p[i],p[(i+1)%p.length],p[(i+2)%p.length]]; const z=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]); if(!s) s=Math.sign(z); else if(Math.sign(z)!==s) return false; } return true; }
+function parallel(a,b,c,d){ const u=Math.atan2(b[1]-a[1],b[0]-a[0]), v=Math.atan2(d[1]-c[1],d[0]-c[0]); let diff=Math.abs(u-v)%Math.PI; diff=Math.min(diff,Math.PI-diff); return diff<15*Math.PI/180; }
+function place(p,deg,s,cx,cy){ const r=deg*Math.PI/180, c=Math.cos(r), n=Math.sin(r); return p.map(([x,y])=>[cx+(x*c-y*n)*s, cy+(x*n+y*c)*s]); }
+const ptsAttr=p=>p.map(q=>q.map(v=>v.toFixed(1)).join(",")).join(" ");
+const FILLS=["--f1","--f2","--f3","--f4","--f5","--f6","--f7","--f8"];
+
+// theory cards (fixed, tidy shapes)
+(function(){
+  const fixed={quadrat:[[-40,-40],[40,-40],[40,40],[-40,40]],rectangle:[[-60,-32],[60,-32],[60,32],[-60,32]],rombe:[[0,-42],[62,0],[0,42],[-62,0]],
+    romboide:[[-38,-30],[62,-30],[38,30],[-62,30]],trapezi:[[-65,32],[65,32],[32,-32],[-32,-32]],trapezoide:[[-60,30],[60,38],[30,-36],[-38,-22]]};
+  const card=(k,i)=>`<figure><svg viewBox="-75 -50 150 100" aria-hidden="true"><polygon class="fig" points="${ptsAttr(fixed[k])}" style="fill:var(${FILLS[i]})"/></svg><figcaption>${cap(SH[k].name)}<small>${SH[k].desc}</small></figcaption></figure>`;
+  $("theory").innerHTML=`<div class="col"><h3>Paral·lelograms</h3><div class="shapes">${["quadrat","rectangle","rombe","romboide"].map(card).join("")}</div></div>
+    <div class="col"><h3>No paral·lelograms</h3><div class="shapes">${["trapezi","trapezoide"].map((k,i)=>card(k,i+4)).join("")}</div>
+    <p class="small muted" style="margin:0">El trapezi té <b>un</b> parell de costats paral·lels. El trapezoide no en té <b>cap</b>.</p></div>`;
+})();
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+// ---------- part 1: true / false bank ----------
+const TF=[
+ ["Un quadrat té els quatre costats iguals i els quatre angles rectes.",true,"El quadrat té 4 costats iguals i 4 angles rectes."],
+ ["Un rectangle té els quatre costats iguals.",false,"El rectangle només té iguals els costats oposats: dos de llargs i dos de curts."],
+ ["Tots els angles d'un rectangle són rectes.",true,"El rectangle té els 4 angles rectes."],
+ ["Un rombe té els quatre costats iguals.",true,"El rombe té els 4 costats iguals."],
+ ["Un rombe té els quatre angles rectes.",false,"El rombe no té angles rectes. Si els tingués, seria un quadrat."],
+ ["El romboide té els costats oposats iguals i paral·lels.",true,"El romboide té els costats oposats iguals i paral·lels, com tots els paral·lelograms."],
+ ["El romboide té els quatre angles rectes.",false,"El romboide no té angles rectes. Si els tingués, seria un rectangle."],
+ ["Un trapezi té només un parell de costats paral·lels.",true,"El trapezi té dos costats paral·lels (un parell) i els altres dos no."],
+ ["El trapezi és un paral·lelogram.",false,"El trapezi només té un parell de costats paral·lels, per això és un no paral·lelogram."],
+ ["El trapezoide no té cap costat paral·lel.",true,"El trapezoide no té cap parell de costats paral·lels."],
+ ["El trapezoide és un paral·lelogram.",false,"El trapezoide no té costats paral·lels: és un no paral·lelogram."],
+ ["Els paral·lelograms tenen els costats oposats paral·lels dos a dos.",true,"Això és el que vol dir paral·lelogram: costats oposats paral·lels dos a dos."],
+ ["El quadrat és un paral·lelogram.",true,"El quadrat té els costats oposats paral·lels: és un paral·lelogram."],
+ ["El rombe és un no paral·lelogram.",false,"El rombe té els costats oposats paral·lels: és un paral·lelogram."],
+ ["El rectangle és un paral·lelogram.",true,"El rectangle té els costats oposats paral·lels: és un paral·lelogram."],
+ ["El romboide és un no paral·lelogram.",false,"El romboide té els costats oposats paral·lels: és un paral·lelogram."],
+ ["Tots els quadrilàters tenen quatre costats.",true,"«Quadri-» vol dir quatre: tots els quadrilàters tenen 4 costats i 4 vèrtexs."],
+ ["Un quadrilàter té tres vèrtexs.",false,"Un quadrilàter té 4 vèrtexs. Una figura de 3 vèrtexs és un triangle."],
+ ["El trapezi i el trapezoide són no paral·lelograms.",true,"Cap dels dos té els costats oposats paral·lels dos a dos."],
+ ["Un quadrilàter amb dos parells de costats paral·lels és un trapezi.",false,"Amb dos parells de costats paral·lels és un paral·lelogram. El trapezi només en té un parell."],
+ ["El trapezoide té els quatre costats iguals.",false,"El trapezoide té els costats diferents i cap de paral·lel."],
+ ["El rombe i el romboide no tenen angles rectes.",true,"Ni el rombe ni el romboide tenen angles rectes."],
+ ["El quadrat i el rectangle tenen els quatre angles rectes.",true,"Tots dos tenen 4 angles rectes."],
+ ["El rombe té dos costats llargs i dos de curts.",false,"El rombe té els 4 costats iguals. El que té dos llargs i dos curts és el romboide."],
+ ["Els quadrilàters es classifiquen en paral·lelograms i no paral·lelograms.",true,"Segons els costats paral·lels, són paral·lelograms o no paral·lelograms."],
+ ["Un triangle és un quadrilàter.",false,"El triangle té 3 costats. Els quadrilàters en tenen 4."],
+];
+
+// ---------- round builders ----------
+const PARTS={tf:"Vertader o fals",cls:"Classifica la figura",find:"Troba les figures"};
+function buildTF(){
+  const t=shuffle(TF.filter(x=>x[1])), f=shuffle(TF.filter(x=>!x[1]));
+  const n=12, nt=5+Math.floor(Math.random()*3);
+  return shuffle([...t.slice(0,nt),...f.slice(0,n-nt)]).map(([s,a,e])=>({part:"tf",s,a,e}));
+}
+function buildCls(){
+  const list=shuffle([...KEYS, pick(KEYS), pick(KEYS)]);
+  return list.map(k=>({part:"cls",k,p:pts(k),rot:Math.random()<.2?rnd(80,100):rnd(-28,28),fill:pick(FILLS)}));
+}
+function buildFind(){
+  // one scene with the 6 quadrilaterals + a triangle and a pentagon, mixed in a 4 x 2 grid
+  const items=shuffle([...KEYS,"triangle","pentagon"]), fills=shuffle(FILLS);
+  const scene=items.map((k,i)=>{ const col=i%4, row=Math.floor(i/4);
+    return {k, pts:place(pts(k), rnd(-22,22), rnd(.86,.96), 100+col*200+rnd(-14,14), 105+row*210+rnd(-12,12)), fill:fills[i]}; });
+  return shuffle(KEYS).map(k=>({part:"find",k,scene}));
+}
+
+// ---------- sound ----------
+let sound=true; try{ if(localStorage.getItem("mat-sound")==="off") sound=false; }catch(e){}
+const setSoundBtn=()=>{ $("soundBtn").textContent="So: "+(sound?"sí":"no"); $("soundBtn").setAttribute("aria-pressed",String(sound)); };
+setSoundBtn();
+$("soundBtn").onclick=()=>{ sound=!sound; setSoundBtn(); try{localStorage.setItem("mat-sound",sound?"on":"off")}catch(e){} };
+let actx=null;
+function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+  (ok?[660,880]:[300,220]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"sawtooth";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*0.11);g.gain.exponentialRampToValueAtTime(ok?0.18:0.08,t+i*0.11+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.11+0.16);
+  o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
+
+// ---------- game ----------
+let round=[], idx=0, results=[], streak=0, answered=false, mode="all", partsInRound=[];
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; startRound(); });
+$("againBtn").onclick=startRound;
+$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; };
+function startRound(){
+  round = mode==="tf"? buildTF() : mode==="cls"? buildCls() : mode==="find"? buildFind() : [...buildTF(),...buildCls(),...buildFind()];
+  partsInRound=[...new Set(round.map(q=>q.part))];
+  idx=0; results=[]; streak=0;
+  ["start","results","reports"].forEach(i=>$(i).hidden=true); $("quiz").hidden=false; renderQ();
+}
+function drawSteps(){
+  const cur=round[idx].part;
+  $("steps").hidden = partsInRound.length<2;
+  $("steps").innerHTML=partsInRound.map((p,i)=>`<span class="${p===cur?"on":partsInRound.indexOf(cur)>i?"done":""}">${i+1} · ${PARTS[p]}</span>`).join("");
+}
+function hud(){ $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`; }
+function renderQ(){
+  const q=round[idx]; answered=false;
+  drawSteps(); hud();
+  $("qCount").textContent=`Pregunta ${idx+1} de ${round.length}`;
+  $("barFill").style.width=(idx/round.length*100)+"%";
+  $("qType").textContent=PARTS[q.part]; $("fb").hidden=true; $("nextBtn").hidden=true;
+  if(q.part==="tf"){
+    $("qBody").innerHTML=`<div class="prompt">És vertader o fals?</div><div class="statement"></div>
+      <div class="opts"><button type="button" data-v="1">Vertader</button><button type="button" data-v="0">Fals</button></div>`;
+    $("qBody").querySelector(".statement").textContent=q.s;
+  } else if(q.part==="cls"){
+    const p=place(q.p,q.rot,1,0,0);
+    $("qBody").innerHTML=`<div class="prompt">Aquesta figura és un paral·lelogram o un no paral·lelogram?</div>
+      <div class="stage single"><svg viewBox="-110 -110 220 220" role="img" aria-label="Un quadrilàter"><polygon class="fig" points="${ptsAttr(p)}" style="fill:var(${q.fill})"/></svg></div>
+      <div class="opts"><button type="button" data-v="1">Paral·lelogram</button><button type="button" data-v="0">No paral·lelogram</button></div>`;
+  } else {
+    const found=results.filter(r=>r.part==="find" && r.scene===q.scene).map(r=>r.k);
+    const missedOrFound=new Set(found);
+    $("qBody").innerHTML=`<div class="prompt">Toca el <span class="target">${q.k.toUpperCase()}</span> al dibuix.</div>
+      <div class="stage"><svg viewBox="0 0 800 420" role="group" aria-label="Dibuix amb moltes figures">${q.scene.map((f,i)=>
+        `<polygon class="fig ${missedOrFound.has(f.k)?"found":"pick"}" data-i="${i}" points="${ptsAttr(f.pts)}" style="fill:var(${f.fill})" ${missedOrFound.has(f.k)?"":'tabindex="0" role="button"'} aria-label="Figura ${i+1}"/>`).join("")}
+        ${q.scene.map(f=>missedOrFound.has(f.k)?label(f):"").join("")}</svg></div>
+      <div class="chips">${KEYS.map(k=>`<span class="chip ${missedOrFound.has(k)?"ok":""}">${k}</span>`).join("")}</div>
+      <p class="small muted" style="margin:0">Compte: al dibuix també hi ha figures que no són quadrilàters.</p>`;
+  }
+  $("qBody").querySelectorAll(".opts button").forEach(b=>b.onclick=()=>grade(b));
+  $("qBody").querySelectorAll("polygon.pick").forEach(el=>{ el.onclick=()=>grade(el); el.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); grade(el);} }; });
+}
+function label(f){ const cx=f.pts.reduce((s,p)=>s+p[0],0)/f.pts.length, cy=f.pts.reduce((s,p)=>s+p[1],0)/f.pts.length; return `<text class="lbl" x="${cx.toFixed(0)}" y="${cy.toFixed(0)}">${f.k}</text>`; }
+const NAME_ANY=k=>SH[k]?SH[k].name:k==="triangle"?"triangle (3 costats, no és un quadrilàter)":"pentàgon (5 costats, no és un quadrilàter)";
+
+function grade(el){
+  if(answered) return; answered=true;
+  const q=round[idx]; let ok, yours, right, asked, why="";
+  if(q.part==="tf"){
+    const v=el.dataset.v==="1"; ok= v===q.a;
+    $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const bv=b.dataset.v==="1"; if(bv===q.a) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+    asked=q.s; yours=v?"Vertader":"Fals"; right=q.a?"Vertader":"Fals"; why=q.e;
+  } else if(q.part==="cls"){
+    const v=el.dataset.v==="1", s=SH[q.k]; ok= v===s.para;
+    $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const bv=b.dataset.v==="1"; if(bv===s.para) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+    asked=`Dibuix d'un ${s.name}`; yours=v?"Paral·lelogram":"No paral·lelogram"; right=s.para?"Paral·lelogram":"No paral·lelogram";
+    why=`És un ${s.name}: ${s.why}. Per això és un ${s.para?"paral·lelogram":"no paral·lelogram"}.`;
+  } else {
+    const f=q.scene[+el.dataset.i]; ok= f.k===q.k;
+    const svg=$("qBody").querySelector("svg"), target=q.scene.findIndex(x=>x.k===q.k), tEl=svg.querySelector(`polygon[data-i="${target}"]`);
+    if(!ok) el.classList.add("wrongpick");
+    tEl.classList.remove("pick"); tEl.classList.add(ok?"found":"show");
+    svg.insertAdjacentHTML("beforeend",label(q.scene[target]));
+    if(!ok) svg.insertAdjacentHTML("beforeend",label(f));
+    svg.querySelectorAll("polygon.pick").forEach(p=>{ p.classList.remove("pick"); p.removeAttribute("tabindex"); p.onclick=null; });
+    asked=`Troba el ${q.k}`; yours= ok? q.k : NAME_ANY(f.k); right=q.k;
+    if(!ok) why= SH[f.k] ? `Has tocat un ${f.k}. El ${q.k} és la figura que ara té la vora verda: ${SH[q.k].desc.toLowerCase()}` : `Has tocat un ${NAME_ANY(f.k)}. El ${q.k} és la figura amb la vora verda: ${SH[q.k].desc.toLowerCase()}`;
+    else why="";
+  }
+  streak= ok? streak+1 : 0;
+  results.push({ok,part:q.part,k:q.k,scene:q.scene,asked,yours,right,why:ok?"":why,expl:q.part==="tf"?q.e:""});
+  beep(ok); hud();
+  const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
+  const okText = q.part==="tf"? q.e : q.part==="cls"? why : `Molt bé, aquest és el ${q.k}.`;
+  fb.innerHTML= ok? `${pick(["Molt bé!","Perfecte!","Genial!","Ets un crac!","Correcte!"])}${streak>=3?` ${streak} seguits!`:""}<small>${okText}</small>` : `Ups! No és correcte.<small>${why}</small>`;
+  $("nextBtn").hidden=false; $("nextBtn").textContent= idx===round.length-1? "Mira el resultat":"Següent";
+  setTimeout(()=>$("nextBtn").focus(),20);
+}
+$("nextBtn").onclick=()=>{ idx++; if(idx>=round.length) finish(); else renderQ(); };
+
+// ---------- results ----------
+const STAR=f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;
+function finish(){
+  $("quiz").hidden=true; $("results").hidden=false;
+  const ok=results.filter(r=>r.ok), ko=results.filter(r=>!r.ok), pct=Math.round(ok.length/results.length*100);
+  const stars=pct>=95?3:pct>=75?2:pct>=50?1:0;
+  $("resTitle").textContent = pct===100?"Perfecte! Ets un expert en quadrilàters.":pct>=75?"Molt bé! Gairebé ho tens.":pct>=50?"Bona feina, però cal repassar.":"Cal practicar una mica més.";
+  $("resNum").textContent=`${ok.length}/${results.length}`;
+  $("resStars").innerHTML=[0,1,2].map(i=>STAR(i<stars)).join("");
+  $("resOk").textContent=`${ok.length} encerts`; $("resKo").textContent=`${ko.length} errors`;
+  $("byCat").innerHTML=partsInRound.map(p=>{ const r=results.filter(x=>x.part===p); return `<div>${r.filter(x=>x.ok).length}/${r.length}<span>${PARTS[p]}</span></div>`; }).join("");
+  $("missBlock").hidden=!ko.length;
+  $("missList").innerHTML="";
+  ko.forEach(r=>{ const a=document.createElement("article");
+    a.innerHTML=`<span class="tag" style="color:var(--muted)">${PARTS[r.part]}</span><span class="q"></span><span>Has respost: <span class="yours"></span></span><span>Correcte: <span class="right"></span></span><span class="small"></span>`;
+    a.querySelector(".q").textContent=r.asked; a.querySelector(".yours").textContent=r.yours; a.querySelector(".right").textContent=r.right; a.querySelector(".small").textContent="Motiu: "+r.why;
+    $("missList").append(a); });
+  buildReport(); saveReport();
+  if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ---------- report: saved and downloaded automatically ----------
+const KEY="reports-informe-quadrilaters";
+const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+const dlMsg=t=>{ $("dlMsg").textContent=t; };
+function buildReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="QUADRILÀTERS - INFORME";
+  const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),"",
+    `Resultat: ${ok} de ${n} encerts (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
+    `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,"","ENCERTS PER PART","----------------"];
+  partsInRound.forEach(p=>{ const r=results.filter(x=>x.part===p); L.push(`${PARTS[p]}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  L.push("","PREGUNTES I RESPOSTES","---------------------");
+  results.forEach((r,i)=>{ L.push(`${i+1}. [${PARTS[r.part]}] ${r.asked}`,`   Ha respost: ${r.yours}`,`   Correcte: ${r.right}`,`   Resultat: ${r.ok?"ENCERT":"ERROR"}`);
+    if(!r.ok) L.push(`   Motiu: ${r.why}`); L.push(""); });
+  L.push("RECORDA","-------","Paral·lelograms (costats oposats paral·lels dos a dos): quadrat, rectangle, rombe i romboide.","No paral·lelograms: trapezi (un parell de costats paral·lels) i trapezoide (cap costat paral·lel).");
+  $("reportText").value=L.join("\n");
+}
+function saveFile(name,text){
+  const url=URL.createObjectURL(new Blob(["﻿"+String(text).replace(/\r?\n/g,"\r\n")],{type:"text/plain;charset=utf-8"}));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
+function saveReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, file=`informe-quadrilaters_${stamp()}.txt`;
+  const data={id:String(Date.now()),game:"Quadrilàters",at:new Date().toISOString(),correct:ok,total:n,pct:Math.round(ok/n*100),
+    grade:(ok/n*10).toFixed(1).replace(".",","),valuation:$("resTitle").textContent,file,text:$("reportText").value};
+  try{ const list=loadLocal(); list.unshift(data); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
+  renderReports();
+  try{ saveFile(file,data.text); dlMsg("Informe desat a «Informes desats» i descarregat automàticament a la carpeta de Baixades."); }
+  catch(e){ dlMsg("L'informe s'ha desat a «Informes desats». Si no s'ha descarregat, fes servir «Descarrega l'informe»."); }
+}
+$("dlBtn").onclick=()=>saveFile(`informe-quadrilaters_${stamp()}.txt`,$("reportText").value);
+$("copyBtn").onclick=()=>{
+  const t=$("reportText");
+  const fallback=()=>{ t.closest("details").open=true; t.focus(); t.select(); dlMsg("Text seleccionat: prem Ctrl+C per copiar-lo."); };
+  try{ navigator.clipboard.writeText(t.value).then(()=>dlMsg("Informe copiat."),fallback); }catch(e){ fallback(); }
+};
+function renderReports(){
+  const L=$("repList"), list=loadLocal();
+  if(!list.length){ L.innerHTML='<span class="muted">Encara no hi ha informes. Quan acabis una prova, apareixerà aquí.</span>'; return; }
+  L.innerHTML="";
+  list.forEach(r=>{
+    const row=document.createElement("div"); row.className="rep-row";
+    const info=document.createElement("div"); info.className="info";
+    info.textContent=`${new Date(r.at).toLocaleString("ca-ES",{dateStyle:"short",timeStyle:"short"})} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    const btns=document.createElement("div"); btns.className="row";
+    const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Descarrega"; b1.onclick=()=>saveFile(r.file||"informe.txt",String(r.text||""));
+    const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copia";
+    b2.onclick=()=>{ try{ navigator.clipboard.writeText(String(r.text||"")).then(()=>{$("repMsg").textContent="Informe copiat.";},()=>{$("repMsg").textContent="No s'ha pogut copiar.";}); }catch(e){} };
+    btns.append(b1,b2); row.append(info,btns); L.append(row);
+  });
+}
+renderReports(); $("reports").hidden=false;
+
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const cols=["#ffc531","#0f8a68","#2f5bea","#c7362f","#9b4fd1"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:5+Math.random()*6,c:pick(cols)}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(++t<220)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+}
+</script>
+</body>
+</html>
