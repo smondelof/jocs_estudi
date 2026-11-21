@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Els Ordinals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one centered game card; a giant number on a "pissarra" panel, one text box to write it; D-U-C rule always one tap away */
+:root{
+  --bg:#fff6e8; --paper:#ffffff; --ink:#2b1a12; --muted:#7a6155; --line:#f1dcc4;
+  --accent:#c7362f; --accent-ink:#ffffff; --sun:#ffc531; --good:#14905a; --good-bg:#dff5ea;
+  --bad:#d33c3c; --bad-bg:#fde6e6; --chip:#fbe8d2; --board:#21463a; --board-ink:#f4fbe9;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1d1410; --paper:#2a1d17; --ink:#fbeee4; --muted:#c9ab9b; --line:#46332a;
+  --accent:#ff7a70; --accent-ink:#2a0e0b; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#3b2a21; --board:#1a3a30; --board-ink:#e9f7dc; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1d1410; --paper:#2a1d17; --ink:#fbeee4; --muted:#c9ab9b; --line:#46332a;
+  --accent:#ff7a70; --accent-ink:#2a0e0b; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#3b2a21; --board:#1a3a30; --board-ink:#e9f7dc; color-scheme:dark }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px);background-size:100% 34px}
+[hidden]{display:none!important}
+.wrap{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.back{flex-basis:100%;font-family:var(--display);font-weight:600;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);margin:0;line-height:1.1}
+h1 span{background:var(--sun);color:#2b1a12;padding:0 .25em;border-radius:6px;display:inline-block;transform:rotate(-2deg)}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 6px 0 var(--line)}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font-family:var(--display);font-weight:600;font-size:1.05rem;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);transition:transform .08s}
+button:active{transform:translateY(3px)}
+button.ghost{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.tag{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:600}
+.bar{height:12px;background:var(--chip);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:999px;transition:width .3s}
+.rule{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.rule div{background:var(--chip);border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;gap:2px}
+.rule b{font-family:var(--display);font-size:2rem;line-height:1;color:var(--accent)}
+.rule span{font-size:.9rem}
+.examples{display:flex;flex-direction:column;gap:4px;background:var(--bg);border-radius:12px;padding:10px 14px;font-variant-numeric:tabular-nums}
+.examples div{display:flex;gap:12px;flex-wrap:wrap} .examples b{min-width:5.5em;font-family:var(--display)}
+.board{background:var(--board);color:var(--board-ink);border-radius:18px;padding:22px 16px;text-align:center;border:6px solid color-mix(in srgb, var(--board) 70%, #8a5a2b)}
+.board .num{font-family:var(--display);font-weight:700;font-size:clamp(2.6rem,11vw,4.6rem);line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:.02em;overflow-wrap:anywhere}
+.board .sfx{font-size:.55em;vertical-align:.7em;margin-left:.04em;color:var(--sun)}
+.board .grp{font-size:.9rem;opacity:.8;margin-top:4px}
+.parts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.parts span{background:var(--chip);border-radius:10px;padding:4px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.parts span small{display:block;font-family:var(--body);font-weight:400;font-size:.78rem;color:var(--muted)}
+textarea.answer{width:100%;font-family:var(--display);font-size:1.35rem;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:none;min-height:3.2em;line-height:1.35}
+textarea.answer:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+textarea.ok{border-color:var(--good);background:var(--good-bg)} textarea.ko{border-color:var(--bad);background:var(--bad-bg)}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ok{background:var(--good-bg);color:var(--good)} .fb.ko{background:var(--bad-bg);color:var(--bad)}
+.fb small{display:block;font-weight:400;color:var(--ink);margin-top:2px}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
+.stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat div{border-radius:12px;padding:8px 14px;font-family:var(--display);font-weight:600}
+.stat .g{background:var(--good-bg);color:var(--good)} .stat .b{background:var(--bad-bg);color:var(--bad)}
+.bycat{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.bycat div{background:var(--bg);border-radius:12px;padding:8px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.bycat span{display:block;font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted)}
+.miss{display:flex;flex-direction:column;gap:10px}
+.miss article{border-left:5px solid var(--bad);background:var(--bg);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0;overflow-wrap:anywhere}
+.miss .q{font-weight:700;font-family:var(--display);font-size:1.2rem;font-variant-numeric:tabular-nums} .miss .yours{color:var(--bad)} .miss .right{color:var(--good);font-weight:700}
+textarea.report{width:100%;min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.45;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical}
+details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;margin-top:4px}
+.replist{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 12px}
+.rep-row .info{min-width:0;font-variant-numeric:tabular-nums}
+.rep-row button{padding:7px 12px;font-size:.92rem}
+@media (max-width:440px){ .card{padding:16px} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease-out}
+#confetti{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <a class="back" href="../index.html">← Tots els jocs</a>
+    <h1>Els <span>Ordinals</span></h1>
+    <button class="ghost" id="soundBtn" aria-pressed="true" type="button">So: sí</button>
+  </header>
+
+  <section class="card" id="start">
+    <h2>Escriu l'ordinal amb lletres</h2>
+    <p class="muted" style="margin:0">Els ordinals diuen la posició: el primer de la fila, la cinquena casa… Veuràs l'abreviatura d'un ordinal i l'has d'escriure amb lletres.</p>
+    <div class="examples small">
+      <div><b>Masculí</b> 1r primer · 2n segon · 3r tercer · 4t quart · 5è cinquè · 10è desè</div>
+      <div><b>Femení</b> 1a primera · 2a segona · 3a tercera · 4a quarta · 5a cinquena · 10a desena</div>
+      <div><b>Compostos</b> 21è vint-i-unè · 21a vint-i-unena · 35è trenta-cinquè · 100è centè</div>
+    </div>
+    <p style="margin:0">Fixa't en la lletra de l'abreviatura: <b>-r, -n, -t, -è</b> és masculí i <b>-a</b> és femení. El guionet segueix la regla <b>D-U</b>.</p>
+    <p class="muted small" style="margin:0">20 números de l'1 al 100. Cada partida té números nous. Al final veuràs els encerts, els errors i el motiu.</p>
+    <div class="row"><button type="button" id="startBtn">Comencem!</button></div>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="hud"><span id="qCount"></span><span id="hudScore"></span></div>
+    <div class="bar"><i id="barFill" style="width:0%"></i></div>
+    <form id="qForm" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
+      <div class="board"><div class="num" id="bigNum"></div><div class="grp" id="grp"></div></div>
+      <label for="ans" class="small muted">Escriu l'ordinal amb lletres:</label>
+      <textarea class="answer" id="ans" rows="1" autocapitalize="off" spellcheck="false" autocomplete="off"></textarea>
+      <div class="parts" id="parts" hidden></div>
+      <div id="fb" hidden></div>
+      <div class="row">
+        <button type="submit" id="checkBtn">Comprova</button>
+        <button type="button" class="ghost" id="helpBtn">Ajuda: com es diu el número?</button>
+        <button type="button" id="nextBtn" hidden>Següent</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card" id="results" hidden>
+    <h2 id="resTitle"></h2>
+    <div class="score">
+      <div class="num" id="resNum"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="stars" id="resStars"></div>
+        <div class="stat"><div class="g" id="resOk"></div><div class="b" id="resKo"></div></div>
+      </div>
+    </div>
+    <div><div class="tag" style="margin-bottom:8px">Encerts per tipus</div><div class="bycat" id="byCat"></div></div>
+    <div id="missBlock"><div class="tag" style="margin-bottom:8px">Errors i per què</div><div class="miss" id="missList"></div></div>
+    <div id="reportBlock" style="display:flex;flex-direction:column;gap:8px">
+      <div class="tag">Informe de la prova</div>
+      <div class="row">
+        <button type="button" id="dlBtn">Descarrega l'informe (.txt)</button>
+        <button type="button" class="ghost" id="copyBtn">Copia l'informe</button>
+      </div>
+      <span class="small muted" id="dlMsg" aria-live="polite"></span>
+      <details class="rep"><summary>Mostra l'informe</summary><textarea class="report" id="reportText" readonly aria-label="Informe"></textarea></details>
+    </div>
+    <div class="row">
+      <button type="button" id="againBtn">Torna a jugar (números nous)</button>
+      <button type="button" class="ghost" id="homeBtn">Inici</button>
+    </div>
+  </section>
+
+  <section class="card" id="reports" hidden>
+    <h2>Informes desats</h2>
+    <p class="muted small" style="margin:0">Cada prova acabada es desa aquí automàticament perquè el mestre la pugui revisar. Els més nous primer.</p>
+    <div class="replist" id="repList"></div>
+    <span class="small muted" id="repMsg" aria-live="polite"></span>
+  </section>
+</div>
+
+<script>
+// ---------- Catalan numbers (normativa D-U-C) ----------
+const CA_U=["zero","u","dos","tres","quatre","cinc","sis","set","vuit","nou"];
+const CA_TEEN=["deu","onze","dotze","tretze","catorze","quinze","setze","disset","divuit","dinou"];
+const CA_TENS=["","","vint","trenta","quaranta","cinquanta","seixanta","setanta","vuitanta","noranta"];
+const TENS_WORDS=CA_TENS.filter(Boolean);
+function caBelow100(n,one){
+  if(n<10) return n===1?one:CA_U[n];
+  if(n<20) return CA_TEEN[n-10];
+  const t=Math.floor(n/10), u=n%10, unit=u===1?one:CA_U[u];
+  if(!u) return CA_TENS[t];
+  return t===2 ? `vint-i-${unit}` : `${CA_TENS[t]}-${unit}`;
+}
+function caBelow1000(n,one){
+  const h=Math.floor(n/100), r=n%100;
+  const hs = h===0?"": h===1?"cent": `${CA_U[h]}-cents`;
+  if(!r) return hs;
+  return (hs?hs+" ":"")+caBelow100(r,one);
+}
+function caNumber(n){
+  if(n===0) return "zero";
+  const m=Math.floor(n/1e6), k=Math.floor(n/1000)%1000, r=n%1000, parts=[];
+  if(m) parts.push(m===1?"un milió":`${caBelow1000(m,"un")} milions`);
+  if(k) parts.push(k===1?"mil":`${caBelow1000(k,"un")} mil`);
+  if(r) parts.push(caBelow1000(r,"u"));
+  return parts.join(" ");
+}
+// accepted regional variants → standard form; a final "un" is accepted as "u"
+function caTidy(s){
+  return (s||"").toLowerCase().replace(/[–—‐]/g,"-").replace(/\s*-\s*/g,"-").replace(/[.,!?"']/g,"").replace(/\s+/g," ").trim();
+}
+function caCanon(s){
+  return caTidy(s)
+    .replace(/\b(dèsset|desset|dèset)\b/g,"disset").replace(/\b(devuit|dihuit|divuit)\b/g,"divuit").replace(/\b(dènou|denou|dinou)\b/g,"dinou")
+    .replace(/\bhuit/g,"vuit").replace(/-huit\b/g,"-vuit")
+    .replace(/(^|[ -])un$/,"$1u");
+}
+const stripAcc=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
+function caCheck(input,n){ return caCanon(input)===caCanon(caNumber(n)); }
+
+// ---------- why is it wrong? (in Catalan) ----------
+function caReason(input,n){
+  try{
+    const right=caNumber(n), c=caCanon(right), a=caCanon(input);
+    if(!a) return `No has escrit res. S'escriu «${right}».`;
+    if(/\d/.test(a)) return `Cal escriure el número amb lletres, no amb xifres: «${right}».`;
+    if(stripAcc(a)===stripAcc(c)) return `Revisa els accents: s'escriu «${right}».`;
+    const ta=a.split(/[ -]/), tc=c.split(/[ -]/);
+    // "-i-" only with vint
+    const badI=a.match(new RegExp(`\\b(${TENS_WORDS.filter(t=>t!=="vint").join("|")})[ -]?i[ -]`));
+    if(badI) return `Només el vint porta «-i-» (vint-i-dos). Amb les altres desenes només hi va guionet: «${badI[1]}-…». S'escriu «${right}».`;
+    if(/\bun mil\b/.test(a) && /(^|[^-])\bmil\b/.test(c) && !/\bun mil\b/.test(c)) return `1.000 és «mil», sense «un» davant. S'escriu «${right}».`;
+    if(/\bmil u\b/.test(c)===false && /-u mil\b|\bu mil\b/.test(a)) return `Davant de «mil» s'escriu «un», no «u» (vint-i-un mil). S'escriu «${right}».`;
+    if(/\bu milions?\b/.test(a)) return `Davant de «milió» s'escriu «un»: un milió. S'escriu «${right}».`;
+    if(/\bun milions\b/.test(a)) return `Un sol milió va en singular: «un milió». S'escriu «${right}».`;
+    if(/\b(dos|tres|quatre|cinc|sis|set|vuit|nou|deu)[ -]milió\b/.test(stripAcc(a).replace(/milio/g,"milió"))||/(dos|tres|quatre|cinc|sis|set|vuit|nou|deu) milio\b/.test(stripAcc(a)))
+      return `A partir de dos, «milions» va en plural. S'escriu «${right}».`;
+    if(/\b(dos|tres|quatre|cinc|sis|set|vuit|nou)[ -]?cent\b/.test(a)) return `Les centenes a partir de 200 acaben en «-cents» i porten guionet: «dos-cents». S'escriu «${right}».`;
+    if(/\b(un[ -]cent|u[ -]cent|cent-cents?)\b/.test(a)) return `100 és «cent», sense «un» davant. S'escriu «${right}».`;
+    // only hyphens / spaces are wrong
+    if(a.replace(/[ -]/g,"")===c.replace(/[ -]/g,"")){
+      let i=0,j=0;
+      while(i<c.length && j<a.length){
+        const x=c[i], y=a[j];
+        if(x===y){ i++; j++; continue; }
+        const left=c.slice(0,i).split(/[ -]/).pop(), right2=c.slice(i).replace(/^[ -]/,"").split(/[ -]/)[0];
+        if(x==="-"){
+          if(right2==="cents") return `Entre les unitats i les centenes va guionet (U-C): «${left}-cents». S'escriu «${right}».`;
+          if(left==="vint"||left==="i") return `Amb vint, desenes i unitats s'uneixen amb «-i-»: «vint-i-…». S'escriu «${right}».`;
+          return `Entre les desenes i les unitats va guionet (D-U): «${left}-${right2}». S'escriu «${right}».`;
+        }
+        if(x===" "){
+          if(y==="-"){
+            if(/^(mil|milió|milions)$/.test(right2)) return `Davant de «${right2}» no hi va guionet, sinó un espai. El guionet només uneix Desenes-Unitats-Centenes. S'escriu «${right}».`;
+            if(/^(cent|cents)$/.test(left)) return `Entre les centenes i el número que ve després no hi va guionet, sinó un espai. S'escriu «${right}».`;
+            return `Aquí no hi va guionet, sinó un espai. El guionet només uneix Desenes-Unitats-Centenes. S'escriu «${right}».`;
+          }
+          return `Has ajuntat dues paraules: entre «${left}» i «${right2}» hi va un espai. S'escriu «${right}».`;
+        }
+        // input has an extra separator
+        if(y==="-") return `Aquí no hi va guionet: «${left}${c.slice(i).split(/[ -]/)[0]}» és una sola paraula. S'escriu «${right}».`;
+        if(y===" ") return `Aquí no hi va cap espai. S'escriu «${right}».`;
+        break;
+      }
+      return `Revisa els guionets i els espais. S'escriu «${right}».`;
+    }
+    // first wrong word
+    const words=new Set(tc);
+    const wrong=ta.find(w=>!words.has(w));
+    if(wrong){
+      const near=tc.find(w=>w.length>2 && levCa(stripAcc(w),stripAcc(wrong))<=2);
+      if(near) return `Revisa l'ortografia de «${near}» (has escrit «${wrong}»). S'escriu «${right}».`;
+      return `La paraula «${wrong}» no hi va. Llegeix el número per parts: milions, milers i la resta. S'escriu «${right}».`;
+    }
+    if(ta.length<tc.length) return `Falta una part del número. Llegeix-lo per parts: milions, milers i la resta. S'escriu «${right}».`;
+    return `S'escriu «${right}».`;
+  }catch(e){ return `S'escriu «${caNumber(n)}».`; }
+}
+function levCa(a,b){const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+
+
+// ---------- Catalan ordinal numbers 1-100 ----------
+const ORD_SPECIAL={1:"primer",2:"segon",3:"tercer",4:"quart"};
+const ORD_STEM=["","un","dos","tres","quatr","cinqu","sis","set","vuit","nov"];
+const ORD_TEEN=["des","onz","dotz","tretz","catorz","quinz","setz","disset","divuit","dinov"];
+const ORD_TENS={2:"vint",3:"trent",4:"quarant",5:"cinquant",6:"seixant",7:"setant",8:"vuitant",9:"norant"};
+const CARD_TENS={2:"vint",3:"trenta",4:"quaranta",5:"cinquanta",6:"seixanta",7:"setanta",8:"vuitanta",9:"noranta"};
+function ordinal(n){
+  if(n<=4) return ORD_SPECIAL[n];
+  if(n<10) return ORD_STEM[n]+"è";
+  if(n<20) return ORD_TEEN[n-10]+"è";
+  if(n===100) return "centè";
+  const t=Math.floor(n/10), u=n%10;
+  if(!u) return ORD_TENS[t]+"è";
+  return t===2 ? `vint-i-${ORD_STEM[u]}è` : `${CARD_TENS[t]}-${ORD_STEM[u]}è`;
+}
+function ordFem(n){ const m=ordinal(n); return n<=4 ? m+"a" : m.replace(/è$/,"ena"); }
+function ordTidy(s){ return (s||"").toLowerCase().replace(/[–—‐]/g,"-").replace(/\s*-\s*/g,"-").replace(/[.,!?"'’]/g,"").replace(/\s+/g," ").trim(); }
+// accepted variants → standard masculine form
+function ordCanon(s){
+  let x=ordTidy(s);
+  x=x.replace(/é$/,"è")                                  // Valencian spelling: cinqué, sisé
+     .replace(/\b(dèssetè|dessetè)$/,"dissetè").replace(/\b(devuitè|dihuitè)$/,"divuitè").replace(/\b(dènovè|denovè)$/,"dinovè")
+     .replace(/huit/g,"vuit");
+  if(/^(primera|segona|tercera|quarta)$/.test(x)) x=x.slice(0,-1);
+  else if(/ena$/.test(x)) x=x.replace(/ena$/,"è");     // feminine: cinquena → cinquè
+  return x;
+}
+function ordCheck(input,n){ return ordCanon(input)===ordinal(n); }
+const ordStrip=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
+// ---------- abbreviations and gender ----------
+const ABBR_M={1:"r",2:"n",3:"r",4:"t"};
+const sfx=(n,g)=> g==="f" ? "a" : (ABBR_M[n]||"è");
+const expected=(n,g)=> g==="f" ? ordFem(n) : ordinal(n);
+function gCanon(s){
+  return ordTidy(s).replace(/é$/,"è")
+    .replace(/\b(dèsset|desset)(è|ena)$/,"disset$2").replace(/\b(devuit|dihuit)(è|ena)$/,"divuit$2").replace(/\b(dènov|denov)(è|ena)$/,"dinov$2")
+    .replace(/huit/g,"vuit");
+}
+const toMasc=x=>/(primera|segona|tercera|quarta)$/.test(x)? x.slice(0,-1) : x.replace(/ena$/,"è");
+function gCheck(input,n,g){ return gCanon(input)===expected(n,g); }
+function gReason(input,n,g){
+  const a=gCanon(input), m=ordinal(n), f=ordFem(n), ab=`${n}${sfx(n,g)}`;
+  if(a && g==="m" && a===f) return `L'abreviatura «${ab}» és masculina (acaba en «${sfx(n,g)}»). Has escrit el femení; en masculí és «${m}».`;
+  if(a && g==="f" && a===m) return `L'abreviatura «${ab}» és femenina (acaba en «a»). Has escrit el masculí; en femení és «${f}».`;
+  if(g==="m") return ordReason(input,n);
+  if(a && !/\d/.test(a) && !/a$/.test(a) && !(typeof caNumber==="function" && a===caNumber(n)))
+    return `L'abreviatura «${ab}» és femenina: l'ordinal acaba en «-a»${n>4?" («-ena» a partir de cinquena)":""}. S'escriu «${f}».`;
+  return ordReason(toMasc(a),n).split(`«${m}»`).join(`«${f}»`).replace("A partir del cinquè, els ordinals acaben en «-è»","A partir de cinquena, els ordinals femenins acaben en «-ena»")
+    .replace("davant de -è","davant de -ena").replace("abans de -è","abans de -ena").replace("s'afegeix -è a la unitat","s'afegeix -ena a la unitat").replace(/«(primer|segon|tercer|quart)»/,"«$1a»").replace("«unè»","«unena»");
+}
+function ordReason(input,n){
+  try{
+    const right=ordinal(n), a=ordCanon(input), u=n%10, t=Math.floor(n/10);
+    if(!a) return `No has escrit res. S'escriu «${right}».`;
+    if(/\d/.test(a)) return `Cal escriure'l amb lletres, no amb xifres: «${right}».`;
+    if(typeof caNumber==="function" && (a===caNumber(n) || (n===1 && a==="un"))) return `Has escrit el número normal (cardinal). L'ordinal és «${right}».`;
+    if(ordStrip(a)===ordStrip(right)) return `Revisa l'accent: l'ordinal acaba en «-è» (amb accent obert). S'escriu «${right}».`;
+    if(n<=4) return `Els quatre primers ordinals són especials: primer, segon, tercer i quart. S'escriu «${right}».`;
+    if(t>=2 && u>=1 && u<=4 && new RegExp(`(${ORD_SPECIAL[u]})$`).test(a)) return `En els números compostos no es fa servir «${ORD_SPECIAL[u]}»: s'afegeix -è a la unitat. S'escriu «${right}».`;
+    if(a.replace(/[ -]/g,"")===right.replace(/[ -]/g,"")){
+      if(t===2) return `Amb vint, desenes i unitats s'uneixen amb «-i-»: «${right}».`;
+      return `Entre les desenes i les unitats va guionet (D-U): «${right}».`;
+    }
+    if(t>=3 && u && new RegExp(`^${CARD_TENS[t]}-?i-`).test(a)) return `Només el vint porta «-i-». Amb les altres desenes només hi va guionet: «${right}».`;
+    if(/cincè$/.test(a)) return `«Cinc» canvia a «cinqu-» davant de -è: «cinquè». S'escriu «${right}».`;
+    if(/dinouè$/.test(a)) return `«Dinou» canvia a «dinov-» davant de -è: «dinovè».`;
+    if(/nouè$/.test(a)) return `«Nou» canvia a «nov-» davant de -è: «novè». S'escriu «${right}».`;
+    if(/deuè$/.test(a)) return `«Deu» canvia a «des-» davant de -è: «desè».`;
+    if(/(trenta|quaranta|cinquanta|seixanta|setanta|vuitanta|noranta)è$/.test(a)) return `La -a final de la desena desapareix: «${right}».`;
+    if(/quatreè$/.test(a) || /(onze|dotze|tretze|catorze|quinze|setze)è$/.test(a)) return `La -e final desapareix abans de -è: «${right}».`;
+    if(/uè$/.test(a) && u===1) return `«U» es converteix en «unè» als compostos: «${right}».`;
+    if(/centèsim/.test(a) || /cent$/.test(a)) return `L'ordinal de 100 és «centè».`;
+    if(!/è$/.test(a)) return `A partir del cinquè, els ordinals acaben en «-è». S'escriu «${right}».`;
+    return `S'escriu «${right}».`;
+  }catch(e){ return `S'escriu «${ordinal(n)}».`; }
+}
+
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,".");
+// types of ordinal
+const GROUPS=[{d:1,name:"Especials (1-4)"},{d:2,name:"Del 5 al 20"},{d:3,name:"Desenes (30, 40… 100)"},{d:4,name:"Compostos amb vint (21-29)"},{d:5,name:"Altres compostos (31-99)"}];
+const groupOf=n=> n<=4?1 : n<=20?2 : (n%10===0)?3 : n<30?4 : 5;
+function buildRound(){
+  // 20 different numbers from 1 to 100, with every type present
+  const want=[[1,3],[2,5],[3,3],[4,3],[5,6]], used=new Set(), list=[];
+  const pool=d=>Array.from({length:100},(_,i)=>i+1).filter(n=>groupOf(n)===d && !used.has(n));
+  want.forEach(([d,c])=>{ shuffle(pool(d)).slice(0,c).forEach(n=>{ used.add(n); list.push({n,d,g:Math.random()<.5?"m":"f"}); }); });
+  return shuffle(list);
+}
+function partsOf(n){ return [[caNumber(n),"en cardinal"]]; }
+// ---------- sound ----------
+let sound=true; try{ if(localStorage.getItem("cat-sound")==="off") sound=false; }catch(e){}
+const setSoundBtn=()=>{ $("soundBtn").textContent="So: "+(sound?"sí":"no"); $("soundBtn").setAttribute("aria-pressed",String(sound)); };
+setSoundBtn();
+$("soundBtn").onclick=()=>{ sound=!sound; setSoundBtn(); try{localStorage.setItem("cat-sound",sound?"on":"off")}catch(e){} };
+let actx=null;
+function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+  (ok?[660,880]:[300,220]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"sawtooth";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*0.11);g.gain.exponentialRampToValueAtTime(ok?0.18:0.08,t+i*0.11+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.11+0.16);
+  o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
+
+// ---------- game ----------
+let round=[], idx=0, results=[], streak=0, answered=false, usedHelp=false;
+$("startBtn").onclick=startRound; $("againBtn").onclick=startRound;
+$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; };
+function startRound(){
+  round=buildRound(); idx=0; results=[]; streak=0;
+  ["start","results","reports"].forEach(i=>$(i).hidden=true); $("quiz").hidden=false; renderQ();
+}
+function renderQ(){
+  const q=round[idx]; answered=false; usedHelp=false;
+  $("qCount").textContent=`Pregunta ${idx+1} de ${round.length}`;
+  $("barFill").style.width=(idx/round.length*100)+"%";
+  $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`;
+  $("bigNum").innerHTML=`${q.n}<span class="sfx">${sfx(q.n,q.g)}</span>`; $("grp").textContent="";
+  const a=$("ans"); a.value=""; a.className="answer"; a.readOnly=false;
+  $("parts").hidden=true; $("fb").hidden=true;
+  $("checkBtn").hidden=false; $("helpBtn").hidden=false; $("nextBtn").hidden=true;
+  setTimeout(()=>a.focus(),30);
+}
+$("helpBtn").onclick=()=>{
+  const q=round[idx]; usedHelp=true;
+  $("parts").innerHTML=`<span>${q.g==="f"?"Femení":"Masculí"}<small>acaba en «${sfx(q.n,q.g)}»</small></span><span>${caNumber(q.n)}<small>així es diu el ${q.n}</small></span>`;
+  $("parts").hidden=false; $("ans").focus();
+};
+$("ans").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(answered) next(); else grade(); } });
+$("qForm").addEventListener("submit",e=>{ e.preventDefault(); if(answered) next(); else grade(); });
+$("nextBtn").onclick=next;
+function grade(){
+  if(answered) return;
+  const q=round[idx], a=$("ans"), val=a.value, ok=gCheck(val,q.n,q.g);
+  a.classList.add(ok?"ok":"ko"); a.readOnly=true; answered=true; streak= ok? streak+1 : 0;
+  const right=expected(q.n,q.g), why= ok? "" : gReason(val,q.n,q.g);
+  const note = ok && ordTidy(val)!==right ? `També és correcte. La forma general és «${right}».` : "";
+  results.push({ok,n:q.n,d:q.d,g:q.g,ab:`${q.n}${sfx(q.n,q.g)}`,yours:val.trim()||"(buit)",right,why,note,help:usedHelp});
+  beep(ok);
+  const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
+  fb.innerHTML = ok ? `${pick(["Molt bé!","Perfecte!","Genial!","Ets un crac!","Correcte!"])}${streak>=3?` ${streak} seguits!`:""}<small>${right}${note?"<br>"+note:""}</small>`
+                    : `Ups! No és correcte.<small>${why}</small>`;
+  $("checkBtn").hidden=true; $("helpBtn").hidden=true; $("nextBtn").hidden=false;
+  $("nextBtn").textContent= idx===round.length-1? "Mira el resultat":"Següent";
+  setTimeout(()=>$("nextBtn").focus(),20);
+  $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`;
+}
+function next(){ idx++; if(idx>=round.length) finish(); else renderQ(); }
+
+// ---------- results ----------
+const STAR=f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;
+function finish(){
+  $("quiz").hidden=true; $("results").hidden=false;
+  const ok=results.filter(r=>r.ok), ko=results.filter(r=>!r.ok), pct=Math.round(ok.length/results.length*100);
+  const stars=pct>=95?3:pct>=75?2:pct>=50?1:0;
+  $("resTitle").textContent = pct===100?"Perfecte! Domines els ordinals.":pct>=75?"Molt bé! Gairebé ho tens.":pct>=50?"Bona feina, però cal repassar.":"Cal practicar una mica més.";
+  $("resNum").textContent=`${ok.length}/${results.length}`;
+  $("resStars").innerHTML=[0,1,2].map(i=>STAR(i<stars)).join("");
+  $("resOk").textContent=`${ok.length} encerts`; $("resKo").textContent=`${ko.length} errors`;
+  $("byCat").innerHTML=GROUPS.map(g=>{ const r=results.filter(x=>x.d===g.d); if(!r.length) return "";
+    return `<div>${r.filter(x=>x.ok).length}/${r.length}<span>${g.name}</span></div>`; }).join("");
+  $("missBlock").hidden=!ko.length;
+  $("missList").innerHTML=ko.map(r=>`<article><span class="q">${r.ab}</span><span>Has escrit: <span class="yours"></span></span>
+     <span>Correcte: <span class="right">${r.right}</span></span><span class="small">Motiu: ${r.why}</span></article>`).join("");
+  $("missList").querySelectorAll(".yours").forEach((el,i)=>el.textContent=ko[i].yours);
+  buildReport(); saveReport();
+  if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ---------- report: saved and downloaded automatically ----------
+const KEY="reports-informe-ordinals-catala";
+const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+const dlMsg=t=>{ $("dlMsg").textContent=t; };
+function buildReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="ELS ORDINALS - INFORME";
+  const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),"",
+    `Resultat: ${ok} de ${n} encerts (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
+    `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,
+    `Ajuda utilitzada en ${results.filter(r=>r.help).length} números`,"","ENCERTS PER TIPUS","-----------------"];
+  GROUPS.forEach(g=>{ const r=results.filter(x=>x.d===g.d); if(r.length) L.push(`${g.name}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  ["m","f"].forEach(g=>{ const r=results.filter(x=>x.g===g); if(r.length) L.push(`${g==="f"?"Femenins":"Masculins"}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  L.push("","PREGUNTES I RESPOSTES","---------------------");
+  results.forEach((r,i)=>{ L.push(`${i+1}. ${r.ab} (${r.g==="f"?"femení":"masculí"})${r.help?" (amb ajuda)":""}`,`   Ha escrit: ${r.yours}`,`   Correcte: ${r.right}`,`   Resultat: ${r.ok?"ENCERT":"ERROR"}`);
+    if(!r.ok) L.push(`   Motiu: ${r.why}`); else if(r.note) L.push(`   Nota: ${r.note}`); L.push(""); });
+  L.push("RECORDA","-------","Masculí: 1r primer, 2n segon, 3r tercer, 4t quart, 5è cinquè, 10è desè, 21è vint-i-unè, 100è centè.","Femení: 1a primera, 2a segona, 3a tercera, 4a quarta, 5a cinquena, 10a desena, 21a vint-i-unena, 100a centena.");
+  $("reportText").value=L.join("\n");
+}
+function saveFile(name,text){
+  const url=URL.createObjectURL(new Blob(["﻿"+String(text).replace(/\r?\n/g,"\r\n")],{type:"text/plain;charset=utf-8"}));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
+function saveReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, file=`informe-ordinals-catala_${stamp()}.txt`;
+  const data={id:String(Date.now()),game:"Els Ordinals",at:new Date().toISOString(),correct:ok,total:n,pct:Math.round(ok/n*100),
+    grade:(ok/n*10).toFixed(1).replace(".",","),valuation:$("resTitle").textContent,file,text:$("reportText").value};
+  try{ const list=loadLocal(); list.unshift(data); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
+  renderReports();
+  try{ saveFile(file,data.text); dlMsg("Informe desat a «Informes desats» i descarregat automàticament a la carpeta de Baixades."); }
+  catch(e){ dlMsg("L'informe s'ha desat a «Informes desats». Si no s'ha descarregat, fes servir «Descarrega l'informe»."); }
+}
+$("dlBtn").onclick=()=>saveFile(`informe-ordinals-catala_${stamp()}.txt`,$("reportText").value);
+$("copyBtn").onclick=()=>{
+  const t=$("reportText");
+  const fallback=()=>{ t.closest("details").open=true; t.focus(); t.select(); dlMsg("Text seleccionat: prem Ctrl+C per copiar-lo."); };
+  try{ navigator.clipboard.writeText(t.value).then(()=>dlMsg("Informe copiat."),fallback); }catch(e){ fallback(); }
+};
+function renderReports(){
+  const L=$("repList"), list=loadLocal();
+  if(!list.length){ L.innerHTML='<span class="muted">Encara no hi ha informes. Quan acabis una prova, apareixerà aquí.</span>'; return; }
+  L.innerHTML="";
+  list.forEach(r=>{
+    const row=document.createElement("div"); row.className="rep-row";
+    const info=document.createElement("div"); info.className="info";
+    info.textContent=`${new Date(r.at).toLocaleString("ca-ES",{dateStyle:"short",timeStyle:"short"})} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    const btns=document.createElement("div"); btns.className="row";
+    const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Descarrega"; b1.onclick=()=>saveFile(r.file||"informe.txt",String(r.text||""));
+    const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copia";
+    b2.onclick=()=>{ try{ navigator.clipboard.writeText(String(r.text||"")).then(()=>{$("repMsg").textContent="Informe copiat.";},()=>{$("repMsg").textContent="No s'ha pogut copiar.";}); }catch(e){} };
+    btns.append(b1,b2); row.append(info,btns); L.append(row);
+  });
+}
+renderReports(); $("reports").hidden=false;
+
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const cols=["#ffc531","#c7362f","#2f5bea","#13916b","#9b4fd1"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:5+Math.random()*6,c:pick(cols)}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(++t<220)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+}
+</script>
+</body>
+</html>
