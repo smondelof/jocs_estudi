@@ -57,6 +57,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .board{background:var(--board);color:var(--board-ink);border-radius:18px;padding:22px 16px;text-align:center;border:6px solid color-mix(in srgb, var(--board) 70%, #8a5a2b)}
 .board .num{font-family:var(--display);font-weight:700;font-size:clamp(2.6rem,11vw,4.6rem);line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:.02em;overflow-wrap:anywhere}
 .board .sfx{font-size:.55em;vertical-align:.7em;margin-left:.04em;color:var(--sun)}
+.board .and{font-size:.45em;opacity:.75;margin:0 .35em;vertical-align:.25em}
 .board .grp{font-size:.9rem;opacity:.8;margin-top:4px}
 .parts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .parts span{background:var(--chip);border-radius:10px;padding:4px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
@@ -111,7 +112,11 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
     </div>
     <p style="margin:0">Fixa't en la lletra de l'abreviatura: <b>-r, -n, -t, -è</b> és masculí i <b>-a</b> és femení. Amb vint, s'uneix amb <b>-i-</b>: vint-i-dosè.</p>
     <p class="muted small" style="margin:0">20 números: de l'1 al 29 i les desenes fins al 100. Cada partida té números nous. Al final veuràs els encerts, els errors i el motiu.</p>
-    <div class="row"><button type="button" data-omode="abbr">Comencem!</button></div>
+    <div class="tag">Tria l'exercici</div>
+    <div class="row">
+      <button type="button" data-omode="abbr">1 · Una abreviatura (7è o 7a)</button>
+      <button type="button" class="ghost" data-omode="both">2 · Masculí i femení (7è i 7a)</button>
+    </div>
   </section>
 
   <section class="card" id="quiz" hidden>
@@ -119,8 +124,10 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
     <div class="bar"><i id="barFill" style="width:0%"></i></div>
     <form id="qForm" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
       <div class="board"><div class="num" id="bigNum"></div><div class="grp" id="grp"></div></div>
-      <label for="ans" class="small muted">Escriu l'ordinal amb lletres:</label>
+      <label for="ans" class="small muted" id="ansLbl">Escriu l'ordinal amb lletres:</label>
       <textarea class="answer" id="ans" rows="1" autocapitalize="off" spellcheck="false" autocomplete="off"></textarea>
+      <label for="ans2" class="small muted" id="ans2Lbl" hidden></label>
+      <textarea class="answer" id="ans2" rows="1" autocapitalize="off" spellcheck="false" autocomplete="off" hidden></textarea>
       <div class="parts" id="parts" hidden></div>
       <div id="fb" hidden></div>
       <div class="row">
@@ -386,23 +393,46 @@ function renderQ(){
   $("qCount").textContent=`Pregunta ${idx+1} de ${round.length}`;
   $("barFill").style.width=(idx/round.length*100)+"%";
   $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`;
-  if(omode==="abbr") $("bigNum").innerHTML=`${q.n}<span class="sfx">${sfx(q.n,q.g)}</span>`; else $("bigNum").textContent=q.n;
-  $("grp").textContent= omode==="abbr" ? "Abreviatura" : "";
-  const a=$("ans"); a.value=""; a.className="answer"; a.readOnly=false;
+  const both=omode==="both";
+  if(both) $("bigNum").innerHTML=`${q.n}<span class="sfx">${sfx(q.n,"m")}</span><span class="and">i</span>${q.n}<span class="sfx">a</span>`;
+  else $("bigNum").innerHTML=`${q.n}<span class="sfx">${sfx(q.n,q.g)}</span>`;
+  $("grp").textContent= both ? "Masculí i femení" : "Abreviatura";
+  const a=$("ans"), a2=$("ans2");
+  [a,a2].forEach(x=>{ x.value=""; x.className="answer"; x.readOnly=false; });
+  $("ansLbl").textContent= both ? `Masculí (${q.n}${sfx(q.n,"m")}):` : "Escriu l'ordinal amb lletres:";
+  $("ans2Lbl").textContent=`Femení (${q.n}a):`; $("ans2Lbl").hidden=!both; a2.hidden=!both;
   $("parts").hidden=true; $("fb").hidden=true;
   $("checkBtn").hidden=false; $("helpBtn").hidden=false; $("nextBtn").hidden=true;
-  setTimeout(()=>a.focus(),30);
+  setTimeout(()=>{ if(document.activeElement!==a2) a.focus(); },30);
 }
 $("helpBtn").onclick=()=>{
   const q=round[idx]; usedHelp=true;
-  $("parts").innerHTML=(omode==="abbr"?`<span>${q.g==="f"?"Femení":"Masculí"}<small>acaba en «${sfx(q.n,q.g)}»</small></span>`:"")+`<span>${caNumber(q.n)}<small>així es diu el ${q.n}; ara escriu-ne l'ordinal</small></span>`;
+  $("parts").innerHTML=(omode==="abbr"?`<span>${q.g==="f"?"Femení":"Masculí"}<small>acaba en «${sfx(q.n,q.g)}»</small></span>`:"")+(omode==="both"?`<span>Femení<small>${q.n<=4?"afegeix -a al masculí":"acaba en -ena"}</small></span>`:"")+`<span>${caNumber(q.n)}<small>així es diu el ${q.n}; ara escriu-ne l'ordinal</small></span>`;
   $("parts").hidden=false; $("ans").focus();
 };
-$("ans").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(answered) next(); else grade(); } });
+$("ans").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(answered) next(); else if(omode==="both") $("ans2").focus(); else grade(); } });
+$("ans2").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(answered) next(); else grade(); } });
 $("qForm").addEventListener("submit",e=>{ e.preventDefault(); if(answered) next(); else grade(); });
 $("nextBtn").onclick=next;
+function gradeBoth(){
+  const q=round[idx], a=$("ans"), a2=$("ans2"), vm=a.value, vf=a2.value;
+  const okM=gCheck(vm,q.n,"m"), okF=gCheck(vf,q.n,"f"), ok=okM&&okF, m=ordinal(q.n), f=ordFem(q.n);
+  a.classList.add(okM?"ok":"ko"); a2.classList.add(okF?"ok":"ko"); a.readOnly=a2.readOnly=true; answered=true; streak= ok? streak+1 : 0;
+  const whys=[]; if(!okM) whys.push("Masculí: "+gReason(vm,q.n,"m")); if(!okF) whys.push("Femení: "+gReason(vf,q.n,"f"));
+  const why=whys.join(" ");
+  results.push({ok,okM,okF,n:q.n,d:q.d,g:"both",ab:`${q.n}${sfx(q.n,"m")} i ${q.n}a`,yours:`${vm.trim()||"(buit)"} / ${vf.trim()||"(buit)"}`,right:`${m} / ${f}`,why,note:"",help:usedHelp});
+  beep(ok);
+  const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
+  fb.innerHTML = ok ? `${pick(["Molt bé!","Perfecte!","Genial!","Ets un crac!","Correcte!"])}${streak>=3?` ${streak} seguits!`:""}<small>${m} · ${f}</small>`
+                    : `${okM||okF?"Una de les dues no és correcta.":"Ups! No són correctes."}<small>${whys.join("<br>")}</small>`;
+  $("checkBtn").hidden=true; $("helpBtn").hidden=true; $("nextBtn").hidden=false;
+  $("nextBtn").textContent= idx===round.length-1? "Mira el resultat":"Següent";
+  setTimeout(()=>$("nextBtn").focus(),20);
+  $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`;
+}
 function grade(){
   if(answered) return;
+  if(omode==="both") return gradeBoth();
   const q=round[idx], a=$("ans"), val=a.value, ok= omode==="abbr" ? gCheck(val,q.n,q.g) : (gCheck(val,q.n,"m")||gCheck(val,q.n,"f"));
   a.classList.add(ok?"ok":"ko"); a.readOnly=true; answered=true; streak= ok? streak+1 : 0;
   const right= omode==="abbr" ? expected(q.n,q.g) : ordinal(q.n), why= ok? "" : omode==="abbr" ? gReason(val,q.n,q.g) : ordReason(toMasc(gCanon(val)),q.n);
@@ -450,6 +480,7 @@ function buildReport(){
     `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,
     `Ajuda utilitzada en ${results.filter(r=>r.help).length} números`,"","ENCERTS PER TIPUS","-----------------"];
   GROUPS.forEach(g=>{ const r=results.filter(x=>x.d===g.d); if(r.length) L.push(`${g.name}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  if(omode==="both") L.push(`Exercici: masculí i femení alhora`,`Formes masculines correctes: ${results.filter(r=>r.okM).length} de ${results.length}`,`Formes femenines correctes: ${results.filter(r=>r.okF).length} de ${results.length}`);
   if(omode==="abbr") ["m","f"].forEach(g=>{ const r=results.filter(x=>x.g===g); if(r.length) L.push(`${g==="f"?"Femenins":"Masculins"}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
   L.push("","PREGUNTES I RESPOSTES","---------------------");
   results.forEach((r,i)=>{ L.push(`${i+1}. ${r.ab}${omode==="abbr"?(r.g==="f"?" (femení)":" (masculí)"):""}${r.help?" (amb ajuda)":""}`,`   Ha escrit: ${r.yours}`,`   Correcte: ${r.right}`,`   Resultat: ${r.ok?"ENCERT":"ERROR"}`);
