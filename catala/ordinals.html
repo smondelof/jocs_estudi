@@ -103,21 +103,15 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
 
   <section class="card" id="start">
     <h2>Escriu l'ordinal amb lletres</h2>
-    <p class="muted" style="margin:0">Els ordinals diuen la posició: el primer de la fila, el cinquè pis… Veuràs un número i n'has d'escriure l'ordinal amb lletres.</p>
+    <p class="muted" style="margin:0">Els ordinals diuen la posició: el primer de la fila, la cinquena casa… Veuràs l'abreviatura d'un ordinal i l'has d'escriure amb lletres.</p>
     <div class="examples small">
-      <div><b>1 · 2 · 3 · 4</b> primer, segon, tercer, quart (són especials)</div>
-      <div><b>5 · 9 · 10 · 19</b> cinquè, novè, desè, dinovè</div>
-      <div><b>20 · 21 · 24</b> vintè, vint-i-unè, vint-i-quatrè</div>
-      <div><b>30 · 40 · 100</b> trentè, quarantè, centè</div>
+      <div><b>Masculí</b> 1r primer · 2n segon · 3r tercer · 4t quart · 5è cinquè · 10è desè</div>
+      <div><b>Femení</b> 1a primera · 2a segona · 3a tercera · 4a quarta · 5a cinquena · 10a desena</div>
+      <div><b>Compostos</b> 21è vint-i-unè · 21a vint-i-unena · 30è trentè · 100a centena</div>
     </div>
-    <p style="margin:0">A partir del 5 s'afegeix <b>-è</b>. Amb vint, s'uneix amb <b>-i-</b>: vint-i-dosè.</p>
+    <p style="margin:0">Fixa't en la lletra de l'abreviatura: <b>-r, -n, -t, -è</b> és masculí i <b>-a</b> és femení. Amb vint, s'uneix amb <b>-i-</b>: vint-i-dosè.</p>
     <p class="muted small" style="margin:0">20 números: de l'1 al 29 i les desenes fins al 100. Cada partida té números nous. Al final veuràs els encerts, els errors i el motiu.</p>
-    <div class="tag">Tria l'exercici</div>
-    <div class="row">
-      <button type="button" data-omode="num">1 · Número en xifres (7)</button>
-      <button type="button" class="ghost" data-omode="abbr">2 · Abreviatura (7è o 7a)</button>
-    </div>
-    <p class="small muted" style="margin:0">A l'exercici 2, fixa't en la lletra: <b>1r, 2n, 3r, 4t, 7è</b> és masculí (setè) i <b>7a</b> és femení (setena).</p>
+    <div class="row"><button type="button" data-omode="abbr">Comencem!</button></div>
   </section>
 
   <section class="card" id="quiz" hidden>
@@ -379,7 +373,7 @@ function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||
 
 // ---------- game ----------
 let round=[], idx=0, results=[], streak=0, answered=false, usedHelp=false;
-let omode="num";
+let omode="abbr";
 document.querySelectorAll("[data-omode]").forEach(b=>b.onclick=()=>{ omode=b.dataset.omode; startRound(); });
 $("againBtn").onclick=startRound;
 $("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; };
@@ -453,7 +447,7 @@ function buildReport(){
   const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="ELS ORDINALS - INFORME";
   const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),"",
     `Resultat: ${ok} de ${n} encerts (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
-    `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,`Exercici: ${omode==="abbr"?"2 · Abreviatura (masculí i femení)":"1 · Número en xifres"}`,
+    `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,
     `Ajuda utilitzada en ${results.filter(r=>r.help).length} números`,"","ENCERTS PER TIPUS","-----------------"];
   GROUPS.forEach(g=>{ const r=results.filter(x=>x.d===g.d); if(r.length) L.push(`${g.name}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
   if(omode==="abbr") ["m","f"].forEach(g=>{ const r=results.filter(x=>x.g===g); if(r.length) L.push(`${g==="f"?"Femenins":"Masculins"}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
