@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Edad Antigua</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one centered game card on warm sandstone; lapis blue + gold accents; five parts chosen from the start screen */
+:root{
+  --bg:#f5eedf; --paper:#fffdf8; --ink:#2a2219; --muted:#76695a; --line:#e6dac2;
+  --accent:#1f4e9c; --accent-ink:#ffffff; --sun:#e0a82e; --good:#14905a; --good-bg:#dff5ea;
+  --bad:#d33c3c; --bad-bg:#fde6e6; --chip:#efe5cf; --meso:#2f8a5f; --egy:#c98a1a;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1b1712; --paper:#262019; --ink:#f4ecdc; --muted:#c2b39c; --line:#3f3529;
+  --accent:#7fa6ee; --accent-ink:#0f1830; --sun:#f0c25a; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#352c22; --meso:#5fc492; --egy:#f0b54a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1b1712; --paper:#262019; --ink:#f4ecdc; --muted:#c2b39c; --line:#3f3529;
+  --accent:#7fa6ee; --accent-ink:#0f1830; --sun:#f0c25a; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#352c22; --meso:#5fc492; --egy:#f0b54a; color-scheme:dark }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;
+  background-image:repeating-linear-gradient(0deg, transparent 0 46px, color-mix(in srgb, var(--line) 60%, transparent) 46px 48px)}
+[hidden]{display:none!important}
+.wrap{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.back{flex-basis:100%;font-family:var(--display);font-weight:600;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);margin:0;line-height:1.1}
+h1 span{background:var(--sun);color:#2a2219;padding:0 .25em;border-radius:6px;display:inline-block;transform:rotate(-2deg)}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 6px 0 var(--line)}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font-family:var(--display);font-weight:600;font-size:1.05rem;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);transition:transform .08s}
+button:active{transform:translateY(3px)}
+button.ghost{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+button:disabled{cursor:default}
+button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.tag{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.modes button{text-align:left;display:flex;flex-direction:column;gap:2px}
+.modes button small{font-family:var(--body);font-weight:400;font-size:.85rem;opacity:.85}
+.modes button.all{grid-column:1/-1;text-align:center;align-items:center}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:600}
+.bar{height:12px;background:var(--chip);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:999px;transition:width .3s}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps span{font-family:var(--display);font-size:.8rem;font-weight:600;border-radius:999px;padding:3px 10px;background:var(--chip);color:var(--muted)}
+.steps span.on{background:var(--accent);color:var(--accent-ink)} .steps span.done{background:var(--good-bg);color:var(--good)}
+.prompt{font-size:1.2rem}
+.statement{font-family:var(--display);font-weight:600;font-size:clamp(1.25rem,4vw,1.55rem);line-height:1.3;background:var(--bg);border-radius:14px;padding:16px 18px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts button{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line);font-size:1.15rem;padding:14px}
+button.ok{background:var(--good)!important;color:#fff!important} button.ko{background:var(--bad)!important;color:#fff!important}
+textarea.answer{width:100%;font-family:var(--body);font-size:1.15rem;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical;min-height:5em;line-height:1.4}
+textarea.ok{border-color:var(--good);background:var(--good-bg)} textarea.ko{border-color:var(--bad);background:var(--bad-bg)}
+.concept{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,5vw,2.1rem);color:var(--accent)}
+/* art */
+.art-img{display:flex;justify-content:center;align-items:center;min-height:284px;background:var(--bg);border-radius:16px;padding:12px}
+.art-img img{max-width:min(260px,70vw);max-height:260px;border-radius:10px;box-shadow:0 4px 0 var(--line)}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.zones button{display:flex;flex-direction:column;gap:2px;align-items:center;padding:14px 10px}
+.zones button small{font-family:var(--body);font-weight:400;font-size:.82rem;opacity:.9}
+.zones .meso{background:var(--meso);color:#fff;box-shadow:0 4px 0 color-mix(in srgb, var(--meso) 60%, #000)}
+.zones .egy{background:var(--egy);color:#fff;box-shadow:0 4px 0 color-mix(in srgb, var(--egy) 60%, #000)}
+.placed{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.placed div{border:2px dashed var(--line);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;min-height:70px;align-content:flex-start}
+.placed div b{flex-basis:100%;font-family:var(--display);font-size:.85rem}
+.placed img{width:56px;height:56px;object-fit:cover;border-radius:8px}
+/* matching */
+.match{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:10px;align-items:start}
+.match .col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.match button{text-align:left;font-size:.98rem;padding:10px 12px;background:var(--chip);color:var(--ink);box-shadow:0 3px 0 var(--line);line-height:1.3}
+.match .c button{font-size:1.05rem}
+.match button.sel{outline:3px solid var(--sun);outline-offset:1px}
+.match button.done{background:var(--good-bg)!important;color:var(--good)!important;box-shadow:none}
+.match button.flash{background:var(--bad)!important;color:#fff!important}
+.match button .n{display:inline-block;min-width:1.5em;font-family:var(--display);font-weight:700}
+/* ordering */
+.slots{display:flex;flex-wrap:wrap;gap:8px;min-height:66px;border:2px dashed var(--line);border-radius:12px;padding:8px;align-items:stretch}
+.slots .empty{color:var(--muted);align-self:center;padding:0 6px}
+.slots.ok{border-color:var(--good);background:var(--good-bg)} .slots.ko{border-color:var(--bad);background:var(--bad-bg)}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 10px;background:var(--chip);color:var(--ink);box-shadow:0 3px 0 var(--line);font-size:1rem;min-width:88px}
+.tile img{width:84px;height:70px;object-fit:cover;border-radius:8px}
+.slots .tile{background:var(--accent);color:var(--accent-ink)}
+.slots .tile .pos{font-size:.75rem;opacity:.85}
+.reveal{background:var(--bg);border-radius:14px;padding:10px}
+.reveal img{width:100%;height:auto;border-radius:10px}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ok{background:var(--good-bg);color:var(--good)} .fb.ko{background:var(--bad-bg);color:var(--bad)}
+.fb small{display:block;font-weight:400;color:var(--ink);margin-top:2px}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
+.stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat div{border-radius:12px;padding:8px 14px;font-family:var(--display);font-weight:600}
+.stat .g{background:var(--good-bg);color:var(--good)} .stat .b{background:var(--bad-bg);color:var(--bad)}
+.bycat{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.bycat div{background:var(--bg);border-radius:12px;padding:8px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.bycat span{display:block;font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted)}
+.miss{display:flex;flex-direction:column;gap:10px}
+.miss article{border-left:5px solid var(--bad);background:var(--bg);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0;overflow-wrap:anywhere}
+.miss .q{font-weight:700} .miss .yours{color:var(--bad)} .miss .right{color:var(--good);font-weight:700}
+textarea.report{width:100%;min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.45;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical}
+details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;margin-top:4px}
+.replist{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 12px}
+.rep-row .info{min-width:0;font-variant-numeric:tabular-nums}
+.rep-row button{padding:7px 12px;font-size:.92rem}
+@media (max-width:520px){ .card{padding:16px} .match{grid-template-columns:1fr} .tile img{width:70px;height:58px} .tile{min-width:76px} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease-out}
+#confetti{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <a class="back" href="../index.html">← Tots els jocs</a>
+    <h1>La <span>Edad Antigua</span></h1>
+    <button class="ghost" id="soundBtn" aria-pressed="true" type="button">Sonido: sí</button>
+  </header>
+
+  <section class="card" id="start">
+    <h2>Mesopotamia y el antiguo Egipto</h2>
+    <p class="muted" style="margin:0">Repasa la hoja de estudio con cinco ejercicios. Cada vez que juegues, las preguntas y el orden cambian. Al final verás los aciertos, los fallos y el porqué.</p>
+    <div class="modes">
+      <button type="button" class="all" data-mode="all">Prueba completa (los 5 ejercicios)</button>
+      <button type="button" class="ghost" data-mode="tf">1 · Verdadero o falso<small>Todo el contenido de la hoja</small></button>
+      <button type="button" class="ghost" data-mode="def">2 · Define conceptos<small>5 conceptos</small></button>
+      <button type="button" class="ghost" data-mode="art">3 · El arte<small>¿Mesopotamia o Egipto?</small></button>
+      <button type="button" class="ghost" data-mode="match">4 · Relaciona<small>Conceptos y definiciones</small></button>
+      <button type="button" class="ghost" data-mode="time">5 · Línea del tiempo<small>Ordena la Edad Antigua</small></button>
+    </div>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="steps" id="steps"></div>
+    <div class="hud"><span id="qCount"></span><span id="hudScore"></span></div>
+    <div class="bar"><i id="barFill" style="width:0%"></i></div>
+    <div class="tag" id="qType"></div>
+    <div id="qBody" style="display:flex;flex-direction:column;gap:14px"></div>
+    <div id="fb" hidden></div>
+    <div class="row"><button type="button" id="checkBtn" hidden>Comprobar</button><button type="button" id="nextBtn" hidden>Siguiente</button></div>
+  </section>
+
+  <section class="card" id="results" hidden>
+    <h2 id="resTitle"></h2>
+    <div class="score">
+      <div class="num" id="resNum"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="stars" id="resStars"></div>
+        <div class="stat"><div class="g" id="resOk"></div><div class="b" id="resKo"></div></div>
+      </div>
+    </div>
+    <div><div class="tag" style="margin-bottom:8px">Aciertos por ejercicio</div><div class="bycat" id="byCat"></div></div>
+    <div id="missBlock"><div class="tag" style="margin-bottom:8px">Fallos y por qué</div><div class="miss" id="missList"></div></div>
+    <div id="reportBlock" style="display:flex;flex-direction:column;gap:8px">
+      <div class="tag">Informe de la prueba</div>
+      <div class="row">
+        <button type="button" id="dlBtn">Descargar informe (.txt)</button>
+        <button type="button" class="ghost" id="copyBtn">Copiar informe</button>
+      </div>
+      <span class="small muted" id="dlMsg" aria-live="polite"></span>
+      <details class="rep"><summary>Ver el informe</summary><textarea class="report" id="reportText" readonly aria-label="Informe"></textarea></details>
+    </div>
+    <div class="row">
+      <button type="button" id="againBtn">Jugar otra vez (todo nuevo)</button>
+      <button type="button" class="ghost" id="homeBtn">Inicio</button>
+    </div>
+  </section>
+
+  <section class="card" id="reports" hidden>
+    <h2>Informes guardados</h2>
+    <p class="muted small" style="margin:0">Cada prueba terminada se guarda aquí automáticamente para que el profesor la pueda revisar. Los más nuevos primero.</p>
+    <div class="replist" id="repList"></div>
+    <span class="small muted" id="repMsg" aria-live="polite"></span>
+  </section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const plain=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-zñ0-9 ]/g," ").replace(/\s+/g," ").trim();
+
+// ---------- 1 · true / false, grouped by topic of the worksheet ----------
+const TF={
+ "La sociedad egipcia":[
+  ["La sociedad egipcia se organizaba de forma jerárquica.",true,"La sociedad egipcia era jerárquica: faraón, sacerdotes, escribas, soldados, artesanos, campesinos y esclavos."],
+  ["En la sociedad egipcia todas las personas tenían la misma importancia.",false,"Era jerárquica: unos grupos tenían más importancia que otros, con el faraón arriba y los esclavos abajo."],
+  ["En lo más alto de la sociedad egipcia estaba el faraón.",true,"El faraón estaba en lo más alto de la sociedad egipcia."],
+  ["Los esclavos estaban en lo más alto de la sociedad egipcia.",false,"Los esclavos estaban en lo más bajo. En lo más alto estaba el faraón."],
+  ["Los escribas y los sacerdotes formaban parte de la sociedad egipcia.",true,"Faraón, sacerdotes, escribas, soldados, artesanos, campesinos y esclavos."]],
+ "La vida cotidiana":[
+  ["Los egipcios vivían junto al río Nilo para cultivar las tierras.",true,"Vivían junto al Nilo porque sus aguas hacían fértiles las tierras."],
+  ["Los egipcios vivían junto al río Tigris.",false,"Los egipcios vivían junto al río Nilo."],
+  ["Los egipcios vestían con ropa de lino.",true,"Vestían con ropa de lino."],
+  ["Los egipcios comían pan, cerveza, verduras y pescado.",true,"Esa era su comida habitual."],
+  ["Los niños egipcios nunca ayudaban en casa ni en el campo.",false,"Los niños jugaban, pero también ayudaban en las tareas del hogar o del campo."]],
+ "Las pirámides":[
+  ["Las pirámides eran tumbas monumentales construidas para los faraones.",true,"Las pirámides eran tumbas para los faraones."],
+  ["Las pirámides eran las casas donde vivían los campesinos.",false,"Las pirámides eran tumbas para los faraones, no casas."],
+  ["Las pirámides se hacían con enormes bloques de piedra.",true,"Se construían con enormes bloques de piedra."],
+  ["Las pirámides se construían con madera.",false,"Se hacían con enormes bloques de piedra."]],
+ "Las momias":[
+  ["Los egipcios momificaban a los muertos para conservar su cuerpo en el Más Allá.",true,"Momificaban para conservar el cuerpo en el Más Allá."],
+  ["Los egipcios momificaban a todas las personas que morían.",false,"Solo momificaban a las personas importantes."],
+  ["La momificación era un ritual religioso.",true,"Era un ritual religioso, solo para las personas importantes."]],
+ "Los faraones":[
+  ["El faraón era el rey de Egipto y también una figura sagrada.",true,"El faraón era el rey y una figura sagrada."],
+  ["El faraón no tenía poder: las leyes las hacían los campesinos.",false,"El faraón tenía el poder absoluto: hacía las leyes, dirigía el ejército y controlaba los templos."],
+  ["El faraón hacía las leyes, dirigía el ejército y controlaba los templos.",true,"Tenía el poder absoluto."]],
+ "Los inventos egipcios":[
+  ["Los egipcios inventaron la escritura jeroglífica, que usaba símbolos.",true,"La escritura jeroglífica usaba símbolos."],
+  ["Los egipcios escribían sobre papiro.",true,"Usaban el papiro para escribir."],
+  ["La escritura cuneiforme es un invento egipcio.",false,"La cuneiforme es de Mesopotamia. Los egipcios inventaron la jeroglífica."],
+  ["Los egipcios crearon un calendario y avanzaron en medicina y matemáticas.",true,"Crearon el calendario y avanzaron en medicina, matemáticas y construcción."],
+  ["Los egipcios construyeron canales para regar sus cultivos.",true,"Construyeron canales para regar."]],
+ "El arte egipcio":[
+  ["Las pirámides, las máscaras funerarias y las pinturas con jeroglíficos son arte del antiguo Egipto.",true,"Son las tres imágenes de arte egipcio de la hoja."],
+  ["El zigurat es una construcción del antiguo Egipto.",false,"El zigurat es de Mesopotamia. En Egipto construían pirámides."]],
+ "Qué es Mesopotamia":[
+  ["Mesopotamia significa «tierra entre dos ríos».",true,"Mesopotamia = tierra entre dos ríos."],
+  ["Mesopotamia significa «tierra de las pirámides».",false,"Mesopotamia significa «tierra entre dos ríos»."],
+  ["Mesopotamia fue una de las primeras grandes civilizaciones.",true,"Fue una de las primeras grandes civilizaciones."]],
+ "Organización social de Mesopotamia":[
+  ["En Mesopotamia aparecieron las primeras ciudades-estado.",true,"Son las primeras ciudades-estado."],
+  ["En Mesopotamia aparecieron los primeros reyes.",true,"Aparecen los primeros reyes."],
+  ["En Mesopotamia no tenían ninguna ley.",false,"Empezaron a tener un código de leyes."]],
+ "Inventos de Mesopotamia":[
+  ["En Mesopotamia se inventó la rueda.",true,"Inventaron la rueda y el regadío."],
+  ["En Mesopotamia aparecieron las primeras escuelas.",true,"Se ven las primeras escuelas."],
+  ["La escritura cuneiforme empezó en Mesopotamia.",true,"Inicio de la escritura cuneiforme."],
+  ["En Mesopotamia inventaron la escritura jeroglífica.",false,"En Mesopotamia empezó la escritura cuneiforme. La jeroglífica es egipcia."]],
+ "Religión y sociedad de Mesopotamia":[
+  ["Los mesopotámicos eran politeístas: creían en varios dioses.",true,"Politeísmo: creer en varios dioses."],
+  ["Los mesopotámicos creían en un solo dios.",false,"Eran politeístas: creían en varios dioses."],
+  ["La sociedad de Mesopotamia se organizaba en reyes, sacerdotes, comerciantes y esclavos.",true,"Así se estructuraba la sociedad."]],
+ "El arte de Mesopotamia":[
+  ["Las tablillas de escritura y los zigurats son arte de Mesopotamia.",true,"Son imágenes de arte mesopotámico de la hoja."],
+  ["Las máscaras funerarias de las momias son arte de Mesopotamia.",false,"Las máscaras funerarias son del antiguo Egipto."]],
+ "La línea del tiempo":[
+  ["La Edad Antigua va desde el 3000 aC hasta el 476 dC.",true,"Empieza hacia el 3000 aC y termina en el 476 dC."],
+  ["La Edad Antigua va después de la Edad Media.",false,"Primero la Prehistoria, después la Edad Antigua y luego la Edad Media."],
+  ["Antes de la Edad Antigua está la Prehistoria.",true,"La Prehistoria va antes de la Edad Antigua."],
+  ["Mesopotamia es la civilización más antigua de la línea del tiempo.",true,"Mesopotamia empieza hacia el 3000 aC, antes que Egipto, Grecia y Roma."],
+  ["Roma es más antigua que Egipto.",false,"El orden es Mesopotamia, Egipto, Grecia y Roma: Roma es la más moderna."],
+  ["El año 2000 aC es más reciente que el año 1000 aC.",false,"Antes de Cristo, cuanto más grande es el número, más antiguo es. El 2000 aC es más antiguo que el 1000 aC."]],
+};
+function buildTF(){
+  const topics=Object.keys(TF), qs=[];
+  topics.forEach(t=>{ const [s,a,e]=pick(TF[t]); qs.push({part:"tf",topic:t,s,a,e}); });   // one per topic: the whole worksheet
+  const rest=shuffle(topics.flatMap(t=>TF[t].map(x=>({t,x})))).filter(o=>!qs.some(q=>q.s===o.x[0])).slice(0,2);
+  rest.forEach(o=>qs.push({part:"tf",topic:o.t,s:o.x[0],a:o.x[1],e:o.x[2]}));
+  return shuffle(qs);
+}
+
+// ---------- 2 · define concepts (checked by key ideas) ----------
+// each "ok" is a list of alternatives; an alternative is a list of groups; every group needs one of its words
+const DEF=[
+ {c:"Mesopotamia",m:"Significa «tierra entre dos ríos». Fue una de las primeras grandes civilizaciones.",ok:[[["entre"],["rio"]],[["civiliz"],["primer","antigu"]]],need:"que significa «tierra entre dos ríos»"},
+ {c:"Pirámide",m:"Tumba monumental construida para los faraones con enormes bloques de piedra.",ok:[[["tumba","enterr","sepult"]],[["farao"],["constru","piedra","monument"]]],need:"que era una tumba para los faraones"},
+ {c:"Momificar",m:"Conservar el cuerpo de los muertos para el Más Allá. Era un ritual religioso.",ok:[[["conserv","guard","preserv","proteg"],["cuerpo","muert","difunt","cadaver"]],[["mas alla"]]],need:"que sirve para conservar el cuerpo de los muertos para el Más Allá"},
+ {c:"Faraón",m:"El rey de Egipto. Era una figura sagrada y tenía el poder absoluto.",ok:[[["rey","gobern","mand","jefe","poder","monarca"]]],need:"que era el rey de Egipto"},
+ {c:"Escritura jeroglífica",m:"La escritura que inventaron los egipcios. Usaba símbolos.",ok:[[["escrit","escrib","letra"],["simbol","dibuj","signo","imagen"]],[["escrit","escrib","letra"],["egip"]]],need:"que es la escritura egipcia hecha con símbolos"},
+ {c:"Escritura cuneiforme",m:"La escritura que empezó en Mesopotamia, con marcas en tablillas de barro.",ok:[[["escrit","escrib","letra"],["mesopot","tablill","cuna","barro","arcilla"]]],need:"que es la escritura de Mesopotamia"},
+ {c:"Papiro",m:"Material que usaban los egipcios para escribir.",ok:[[["escrib","escrit","papel","hoja"]]],need:"que servía para escribir"},
+ {c:"Politeísmo",m:"Creer en varios dioses.",ok:[[["dios"],["vario","mucho","mas de un","diferent","distint"]]],need:"que es creer en varios dioses"},
+ {c:"Sociedad jerárquica",m:"Sociedad organizada en grupos de más a menos importancia: el faraón arriba y los esclavos abajo.",ok:[[["nivel","grupo","orden","import","arriba","abajo","piramide","clase","rango","escalon"]]],need:"que está organizada por grupos, de más a menos importantes"},
+ {c:"Ciudad-estado",m:"Ciudad que se gobernaba a sí misma, con su propio rey y sus leyes. Las primeras aparecieron en Mesopotamia.",ok:[[["ciudad"],["gobier","rey","propi","independ","ley","sola","mand"]]],need:"que era una ciudad que se gobernaba sola, con su rey"},
+ {c:"Regadío",m:"Llevar agua a los campos para regar los cultivos. Lo inventaron en Mesopotamia.",ok:[[["agua","regar","riego","rega"],["cultiv","campo","planta","tierra"]]],need:"que es llevar agua a los cultivos"},
+ {c:"Más Allá",m:"El lugar donde los egipcios creían que se iba después de morir.",ok:[[["morir","muert","despues de","vida despues","fallec"]]],need:"que es donde creían que se iba después de morir"},
+ {c:"Código de leyes",m:"Conjunto de normas escritas que todos debían cumplir. Empezó en Mesopotamia.",ok:[[["norma","regla","ley"]]],need:"que es un conjunto de normas o leyes"},
+ {c:"Río Nilo",m:"El río de Egipto. Los egipcios vivían junto a él para cultivar las tierras.",ok:[[["rio"],["egip","cultiv","agua","tierra"]],[["egip"],["vivi","cultiv"]]],need:"que era el río de Egipto, junto al que vivían para cultivar"},
+];
+function defCheck(text,d){
+  const t=plain(text); if(t.length<3) return false;
+  return d.ok.some(alt=>alt.every(group=>group.some(w=>t.includes(w))));
+}
+function buildDef(){ return shuffle(DEF).slice(0,5).map(d=>({part:"def",d})); }
+
+// ---------- 3 · art: Mesopotamia or ancient Egypt ----------
+const ART=[
+ {img:"img/egipto-piramide.jpg",civ:"egy",name:"Pirámide",why:"Las pirámides eran las tumbas de los faraones del antiguo Egipto."},
+ {img:"img/egipto-mascara.jpg",civ:"egy",name:"Máscara funeraria",why:"La máscara funeraria cubría la cara de la momia: es del antiguo Egipto."},
+ {img:"img/egipto-pintura.jpg",civ:"egy",name:"Pintura con jeroglíficos",why:"Las pinturas con figuras de perfil y jeroglíficos son del antiguo Egipto."},
+ {img:"img/meso-tablilla.jpg",civ:"meso",name:"Tablilla con escritura cuneiforme",why:"Las tablillas con escritura cuneiforme son de Mesopotamia."},
+ {img:"img/meso-zigurat.jpg",civ:"meso",name:"Zigurat",why:"El zigurat, un templo escalonado, es de Mesopotamia."},
+ {img:"img/meso-estatua.jpg",civ:"meso",name:"Estatua mesopotámica",why:"Esta estatua de piedra oscura, sentada con las manos juntas, es de Mesopotamia."},
+];
+const CIV={meso:"Mesopotamia",egy:"Antiguo Egipto"};
+function buildArt(){ return shuffle(ART).map(a=>({part:"art",a})); }
+
+// ---------- 4 · match concepts with definitions ----------
+const PAIRS=[
+ ["Faraón","Rey de Egipto, figura sagrada con poder absoluto."],["Pirámide","Tumba monumental para los faraones."],
+ ["Momia","Cuerpo conservado para el Más Allá."],["Papiro","Material egipcio para escribir."],
+ ["Jeroglíficos","Escritura egipcia con símbolos."],["Escritura cuneiforme","Escritura de Mesopotamia en tablillas de barro."],
+ ["Nilo","Río junto al que vivían los egipcios."],["Mesopotamia","Tierra entre dos ríos."],
+ ["Politeísmo","Creer en varios dioses."],["Zigurat","Templo escalonado de Mesopotamia."],
+ ["Ciudad-estado","Ciudad con su propio rey y sus leyes."],["Rueda","Invento de Mesopotamia."],
+ ["Lino","Tejido con el que vestían los egipcios."],["Canales","Construcciones para llevar agua y regar los cultivos."],
+];
+function buildMatch(){ return shuffle(PAIRS).slice(0,6).map(([c,d])=>({part:"match",c,d})); }
+
+// ---------- 5 · timeline ----------
+const TIME=[
+ {id:"etapas",prompt:"Ordena las etapas de la historia, de la más antigua a la más moderna.",
+  items:[{t:"Prehistoria",img:"img/tl-prehistoria.jpg"},{t:"Edad Antigua"},{t:"Edad Media",img:"img/tl-edad-media.jpg"}],
+  why:"Primero la Prehistoria, después la Edad Antigua (del 3000 aC al 476 dC) y luego la Edad Media."},
+ {id:"civ",prompt:"Ordena las civilizaciones según cuándo aparecen en la línea del tiempo.",
+  items:[{t:"Mesopotamia",img:"img/tl-mesopotamia.jpg"},{t:"Egipto",img:"img/tl-egipto.jpg"},{t:"Grecia",img:"img/tl-grecia.jpg"},{t:"Roma",img:"img/tl-roma.jpg"}],
+  why:"Mesopotamia empieza hacia el 3000 aC, poco después Egipto, más tarde Grecia y la última es Roma, que llega hasta el 476 dC."},
+ {id:"fechas",prompt:"Ordena las fechas de la línea del tiempo, de la más antigua a la más moderna.",
+  items:[{t:"3000 aC"},{t:"2000 aC"},{t:"1000 aC"},{t:"0"},{t:"476 dC"}],
+  why:"Antes de Cristo, cuanto más grande es el número, más antiguo es: 3000 aC, 2000 aC, 1000 aC, el año 0 y después 476 dC."},
+];
+function buildTime(){ return TIME.map(t=>({part:"time",t,tiles:shuffleNot(t.items)})); }
+function shuffleNot(a){ let s,n=0; do{ s=shuffle(a); n++; }while(s.every((x,i)=>x===a[i]) && n<30); return s; }
+
+const PARTS={tf:"Verdadero o falso",def:"Define conceptos",art:"El arte",match:"Relaciona",time:"Línea del tiempo"};
+
+// ---------- sound ----------
+let sound=true; try{ if(localStorage.getItem("ea-sound")==="off") sound=false; }catch(e){}
+const setSoundBtn=()=>{ $("soundBtn").textContent="Sonido: "+(sound?"sí":"no"); $("soundBtn").setAttribute("aria-pressed",String(sound)); };
+setSoundBtn();
+$("soundBtn").onclick=()=>{ sound=!sound; setSoundBtn(); try{localStorage.setItem("ea-sound",sound?"on":"off")}catch(e){} };
+let actx=null;
+function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+  (ok?[660,880]:[300,220]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"sawtooth";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*0.11);g.gain.exponentialRampToValueAtTime(ok?0.18:0.08,t+i*0.11+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.11+0.16);
+  o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
+
+// ---------- game flow ----------
+// the matching exercise is one screen with 6 pairs; each pair counts as one answer
+let steps=[], si=0, results=[], streak=0, answered=false, mode="all", partsIn=[], built=[];
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; startRound(); });
+$("againBtn").onclick=startRound;
+$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; };
+function startRound(){
+  const B={tf:buildTF,def:buildDef,art:buildArt,time:buildTime};
+  const order= mode==="all" ? ["tf","def","art","match","time"] : [mode];
+  steps=[]; order.forEach(p=>{ if(p==="match") steps.push({part:"match",pairs:buildMatch()}); else steps.push(...B[p]()); });
+  partsIn=order; si=0; results=[]; streak=0;
+  ["start","results","reports"].forEach(i=>$(i).hidden=true); $("quiz").hidden=false; render();
+}
+const totalAnswers=()=>steps.reduce((n,s)=>n+(s.part==="match"?s.pairs.length:1),0);
+const doneAnswers=()=>steps.slice(0,si).reduce((n,s)=>n+(s.part==="match"?s.pairs.length:1),0);
+function hud(){ $("hudScore").textContent=`Aciertos: ${results.filter(r=>r.ok).length} · Racha: ${streak}`; }
+function render(){
+  const q=steps[si]; answered=false;
+  $("steps").hidden=partsIn.length<2;
+  $("steps").innerHTML=partsIn.map((p,i)=>`<span class="${p===q.part?"on":partsIn.indexOf(q.part)>i?"done":""}">${i+1} · ${PARTS[p]}</span>`).join("");
+  $("qCount").textContent=`Pregunta ${doneAnswers()+1} de ${totalAnswers()}`;
+  $("barFill").style.width=(doneAnswers()/totalAnswers()*100)+"%";
+  $("qType").textContent=PARTS[q.part]; $("fb").hidden=true; $("nextBtn").hidden=true; $("checkBtn").hidden=true; hud();
+  const B=$("qBody");
+  if(q.part==="tf"){
+    B.innerHTML=`<div class="prompt">¿Verdadero o falso?</div><div class="statement"></div>
+      <div class="opts"><button type="button" data-v="1">Verdadero</button><button type="button" data-v="0">Falso</button></div>`;
+    B.querySelector(".statement").textContent=q.s;
+    B.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>gradeTF(b));
+  } else if(q.part==="def"){
+    B.innerHTML=`<div class="prompt">Explica con tus palabras qué es:</div><div class="concept">${esc(q.d.c)}</div>
+      <textarea class="answer" id="ans" rows="3" spellcheck="false" aria-label="Tu definición"></textarea>`;
+    $("checkBtn").hidden=false; setTimeout(()=>$("ans").focus(),30);
+  } else if(q.part==="art"){
+    const placed=results.filter(r=>r.part==="art");
+    B.innerHTML=`<div class="prompt">¿A qué civilización pertenece esta obra de arte?</div>
+      <div class="art-img"><img src="${q.a.img}" alt="Obra de arte de la Edad Antigua"></div>
+      <div class="zones"><button type="button" class="meso" data-c="meso">Mesopotamia<small>desde el 3000 aC · entre dos ríos</small></button>
+        <button type="button" class="egy" data-c="egy">Antiguo Egipto<small>junto al río Nilo</small></button></div>
+      <div class="placed"><div><b>Mesopotamia</b>${placed.filter(r=>r.civ==="meso").map(r=>`<img src="${r.img}" alt="">`).join("")}</div>
+        <div><b>Antiguo Egipto</b>${placed.filter(r=>r.civ==="egy").map(r=>`<img src="${r.img}" alt="">`).join("")}</div></div>`;
+    B.querySelectorAll(".zones button").forEach(b=>b.onclick=()=>gradeArt(b));
+  } else if(q.part==="match"){
+    renderMatch(q);
+  } else {
+    built=[];
+    B.innerHTML=`<div class="prompt">${esc(q.t.prompt)}</div><p class="small muted" style="margin:0">Toca las tarjetas en orden. Toca una tarjeta colocada para quitarla.</p>
+      <div class="slots" id="slots"></div><div class="tiles" id="tiles"></div>
+      <div class="row"><button type="button" class="ghost" id="clearBtn">Borrar</button></div>`;
+    $("clearBtn").onclick=()=>{ if(answered) return; built=[]; drawTiles(); };
+    drawTiles(); $("checkBtn").hidden=false;
+  }
+}
+function tileHtml(it,extra){ return `${it.img?`<img src="${it.img}" alt="">`:""}<span>${esc(it.t)}</span>${extra||""}`; }
+function drawTiles(){
+  const q=steps[si];
+  $("slots").innerHTML= built.length ? built.map((ti,pos)=>`<button type="button" class="tile" data-pos="${pos}">${tileHtml(q.tiles[ti],`<span class="pos">${pos+1}º</span>`)}</button>`).join("") : `<span class="empty">Toca las tarjetas en orden…</span>`;
+  $("tiles").innerHTML=q.tiles.map((it,i)=> built.includes(i)?"":`<button type="button" class="tile" data-i="${i}">${tileHtml(it)}</button>`).join("");
+  $("tiles").querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(answered) return; built.push(+b.dataset.i); drawTiles(); });
+  $("slots").querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(answered) return; built.splice(+b.dataset.pos,1); drawTiles(); });
+}
+$("checkBtn").onclick=()=>{ const q=steps[si]; if(q.part==="def") gradeDef(); else if(q.part==="time") gradeTime(); };
+
+function feedback(ok,okText,why){
+  const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
+  fb.innerHTML= ok? `${pick(["¡Muy bien!","¡Perfecto!","¡Genial!","¡Eres un crack!","¡Correcto!"])}${streak>=3?` ¡${streak} seguidas!`:""}<small>${okText}</small>` : `¡Ups! No es correcto.<small>${why}</small>`;
+  $("checkBtn").hidden=true; $("nextBtn").hidden=false; $("nextBtn").textContent= si===steps.length-1? "Ver el resultado":"Siguiente";
+  setTimeout(()=>$("nextBtn").focus(),20); hud();
+}
+function record(r){ streak= r.ok? streak+1 : 0; results.push(r); beep(r.ok); }
+
+function gradeTF(el){
+  if(answered) return; answered=true; const q=steps[si], v=el.dataset.v==="1", ok= v===q.a;
+  $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const bv=b.dataset.v==="1"; if(bv===q.a) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+  record({ok,part:"tf",asked:q.s,yours:v?"Verdadero":"Falso",right:q.a?"Verdadero":"Falso",why:ok?"":q.e,topic:q.topic});
+  feedback(ok,esc(q.e),esc(q.e));
+}
+function gradeDef(){
+  if(answered) return; const q=steps[si], el=$("ans"), val=el.value.trim();
+  answered=true; const ok=defCheck(val,q.d); el.classList.add(ok?"ok":"ko"); el.readOnly=true;
+  const why= !val ? `No has escrito nada. Una buena definición: ${q.d.m}` : `Te ha faltado decir ${q.d.need}. Una buena definición: ${q.d.m}`;
+  record({ok,part:"def",asked:`Define: ${q.d.c}`,yours:val||"(vacío)",right:q.d.m,why:ok?"":why});
+  feedback(ok,`Una definición completa: ${esc(q.d.m)}`,esc(why));
+}
+function gradeArt(el){
+  if(answered) return; answered=true; const q=steps[si], c=el.dataset.c, ok= c===q.a.civ;
+  $("qBody").querySelectorAll(".zones button").forEach(b=>{ b.disabled=true; if(b.dataset.c===q.a.civ) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+  record({ok,part:"art",asked:`Obra de arte: ${q.a.name}`,yours:CIV[c],right:CIV[q.a.civ],why:ok?"":q.a.why,civ:q.a.civ,img:q.a.img});
+  feedback(ok,`${esc(q.a.name)}. ${esc(q.a.why)}`,esc(q.a.why));
+}
+function gradeTime(){
+  if(answered) return; const q=steps[si];
+  if(built.length<q.tiles.length){ const fb=$("fb"); fb.hidden=false; fb.className="fb ko"; fb.innerHTML=`Te faltan tarjetas.<small>Coloca todas las tarjetas antes de comprobar.</small>`; return; }
+  answered=true;
+  const got=built.map(i=>q.tiles[i].t), right=q.t.items.map(x=>x.t), ok=got.every((t,i)=>t===right[i]);
+  $("slots").classList.add(ok?"ok":"ko");
+  record({ok,part:"time",asked:q.t.prompt,yours:got.join(" → "),right:right.join(" → "),why:ok?"":q.t.why});
+  feedback(ok,esc(right.join(" → ")),`El orden correcto es: ${esc(right.join(" → "))}. ${esc(q.t.why)}`);
+  if(si===steps.length-1 || steps[si+1].part!=="time"){
+    $("fb").insertAdjacentHTML("afterend",`<div class="reveal" id="reveal"><div class="tag" style="margin-bottom:6px">La línea del tiempo de tu hoja</div><img src="img/linea-tiempo.jpg" alt="Línea del tiempo de la Edad Antigua: Mesopotamia, Egipto, Grecia y Roma, del 3000 aC al 476 dC"></div>`);
+  }
+}
+
+// matching: tap a concept, then its definition
+let mSel=null, mDone=new Set(), mTried=new Set();
+function renderMatch(q){
+  mSel=null; mDone=new Set(); mTried=new Set();
+  const defs=shuffle(q.pairs.map((p,i)=>i));
+  $("qBody").innerHTML=`<div class="prompt">Toca un concepto y después su definición.</div>
+    <div class="match"><div class="col c">${q.pairs.map((p,i)=>`<button type="button" data-c="${i}">${esc(p.c)}</button>`).join("")}</div>
+    <div class="col d">${defs.map(i=>`<button type="button" data-d="${i}">${esc(q.pairs[i].d)}</button>`).join("")}</div></div>`;
+  $("qBody").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{ if(mDone.has(+b.dataset.c)) return;
+    $("qBody").querySelectorAll("[data-c]").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); mSel=+b.dataset.c; });
+  $("qBody").querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>matchTry(q,b));
+}
+function matchTry(q,b){
+  const d=+b.dataset.d; if(mSel===null){ $("fb").hidden=false; $("fb").className="fb ko"; $("fb").innerHTML="Primero toca un concepto.<small>Después toca la definición que le corresponde.</small>"; return; }
+  if(mDone.has(d)) return;
+  const c=mSel, cBtn=$("qBody").querySelector(`[data-c="${c}"]`), p=q.pairs[c];
+  if(d===c){
+    mDone.add(c); cBtn.classList.remove("sel"); cBtn.classList.add("done"); b.classList.add("done"); cBtn.disabled=b.disabled=true;
+    if(!mTried.has(c)){ record({ok:true,part:"match",asked:`Relaciona: ${p.c}`,yours:p.d,right:p.d,why:""}); }
+    $("fb").hidden=false; $("fb").className="fb ok"; $("fb").innerHTML=`¡Bien!<small>${esc(p.c)}: ${esc(p.d)}</small>`;
+  } else {
+    b.classList.add("flash"); setTimeout(()=>b.classList.remove("flash"),500);
+    if(!mTried.has(c)){ mTried.add(c); record({ok:false,part:"match",asked:`Relaciona: ${p.c}`,yours:q.pairs[d].d,right:p.d,why:`«${q.pairs[d].d}» es la definición de «${q.pairs[d].c}». ${p.c}: ${p.d}`}); }
+    $("fb").hidden=false; $("fb").className="fb ko"; $("fb").innerHTML=`Esa no es.<small>«${esc(q.pairs[d].d)}» corresponde a otro concepto. Prueba otra vez.</small>`;
+  }
+  mSel=null; hud();
+  if(mDone.size===q.pairs.length){ answered=true; $("nextBtn").hidden=false; $("nextBtn").textContent= si===steps.length-1? "Ver el resultado":"Siguiente"; setTimeout(()=>$("nextBtn").focus(),20); }
+}
+$("nextBtn").onclick=()=>{ const r=$("reveal"); if(r) r.remove(); si++; if(si>=steps.length) finish(); else render(); };
+
+// ---------- results ----------
+const STAR=f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;
+function finish(){
+  $("quiz").hidden=true; $("results").hidden=false;
+  const ok=results.filter(r=>r.ok), ko=results.filter(r=>!r.ok), pct=Math.round(ok.length/results.length*100);
+  const stars=pct>=95?3:pct>=75?2:pct>=50?1:0;
+  $("resTitle").textContent= pct===100?"¡Perfecto! Dominas la Edad Antigua.":pct>=75?"¡Muy bien! Ya casi lo tienes.":pct>=50?"Buen trabajo, pero hay que repasar.":"Hay que practicar un poco más.";
+  $("resNum").textContent=`${ok.length}/${results.length}`;
+  $("resStars").innerHTML=[0,1,2].map(i=>STAR(i<stars)).join("");
+  $("resOk").textContent=`${ok.length} aciertos`; $("resKo").textContent=`${ko.length} fallos`;
+  $("byCat").innerHTML=partsIn.map(p=>{ const r=results.filter(x=>x.part===p); return `<div>${r.filter(x=>x.ok).length}/${r.length}<span>${PARTS[p]}</span></div>`; }).join("");
+  $("missBlock").hidden=!ko.length; $("missList").innerHTML="";
+  ko.forEach(r=>{ const a=document.createElement("article");
+    a.innerHTML=`<span class="tag" style="color:var(--muted)">${PARTS[r.part]}</span><span class="q"></span><span>Tu respuesta: <span class="yours"></span></span><span>Correcto: <span class="right"></span></span><span class="small"></span>`;
+    a.querySelector(".q").textContent=r.asked; a.querySelector(".yours").textContent=r.yours; a.querySelector(".right").textContent=r.right; a.querySelector(".small").textContent="Por qué: "+r.why;
+    $("missList").append(a); });
+  buildReport(); saveReport();
+  if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ---------- report: saved and downloaded automatically ----------
+const KEY="reports-informe-edad-antigua";
+const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+const dlMsg=t=>{ $("dlMsg").textContent=t; };
+function buildReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="LA EDAD ANTIGUA - INFORME";
+  const L=[title,"=".repeat(title.length),"Fecha: "+new Date().toLocaleString("es-ES"),"",
+    `Resultado: ${ok} de ${n} aciertos (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
+    `Aciertos: ${ok} · Fallos: ${n-ok}`,`Valoración: ${$("resTitle").textContent}`,"","ACIERTOS POR EJERCICIO","----------------------"];
+  partsIn.forEach(p=>{ const r=results.filter(x=>x.part===p); L.push(`${PARTS[p]}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  if(results.some(r=>r.part==="def")) L.push("","Nota para el profesor: las definiciones se corrigen buscando las ideas clave. Conviene revisar el texto que ha escrito el alumno.");
+  L.push("","PREGUNTAS Y RESPUESTAS","----------------------");
+  results.forEach((r,i)=>{ L.push(`${i+1}. [${PARTS[r.part]}] ${r.asked}`,`   Su respuesta: ${r.yours}`,`   Correcto: ${r.right}`,`   Resultado: ${r.ok?"ACIERTO":"FALLO"}`);
+    if(!r.ok) L.push(`   Por qué: ${r.why}`); L.push(""); });
+  $("reportText").value=L.join("\n");
+}
+function saveFile(name,text){
+  const url=URL.createObjectURL(new Blob(["﻿"+String(text).replace(/\r?\n/g,"\r\n")],{type:"text/plain;charset=utf-8"}));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
+function saveReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, file=`informe-edad-antigua_${stamp()}.txt`;
+  const data={id:String(Date.now()),game:"La Edad Antigua",at:new Date().toISOString(),correct:ok,total:n,pct:Math.round(ok/n*100),
+    grade:(ok/n*10).toFixed(1).replace(".",","),valuation:$("resTitle").textContent,file,text:$("reportText").value};
+  try{ const list=loadLocal(); list.unshift(data); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
+  renderReports();
+  try{ saveFile(file,data.text); dlMsg("Informe guardado en «Informes guardados» y descargado automáticamente en la carpeta de Descargas."); }
+  catch(e){ dlMsg("El informe se ha guardado en «Informes guardados». Si no se ha descargado, usa «Descargar informe»."); }
+}
+$("dlBtn").onclick=()=>saveFile(`informe-edad-antigua_${stamp()}.txt`,$("reportText").value);
+$("copyBtn").onclick=()=>{
+  const t=$("reportText");
+  const fallback=()=>{ t.closest("details").open=true; t.focus(); t.select(); dlMsg("Texto seleccionado: pulsa Ctrl+C para copiarlo."); };
+  try{ navigator.clipboard.writeText(t.value).then(()=>dlMsg("Informe copiado."),fallback); }catch(e){ fallback(); }
+};
+function renderReports(){
+  const L=$("repList"), list=loadLocal();
+  if(!list.length){ L.innerHTML='<span class="muted">Todavía no hay informes. Cuando termines una prueba, aparecerá aquí.</span>'; return; }
+  L.innerHTML="";
+  list.forEach(r=>{
+    const row=document.createElement("div"); row.className="rep-row";
+    const info=document.createElement("div"); info.className="info";
+    info.textContent=`${new Date(r.at).toLocaleString("es-ES",{dateStyle:"short",timeStyle:"short"})} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    const btns=document.createElement("div"); btns.className="row";
+    const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Descargar"; b1.onclick=()=>saveFile(r.file||"informe.txt",String(r.text||""));
+    const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copiar";
+    b2.onclick=()=>{ try{ navigator.clipboard.writeText(String(r.text||"")).then(()=>{$("repMsg").textContent="Informe copiado.";},()=>{$("repMsg").textContent="No se ha podido copiar.";}); }catch(e){} };
+    btns.append(b1,b2); row.append(info,btns); L.append(row);
+  });
+}
+renderReports(); $("reports").hidden=false;
+
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const cols=["#e0a82e","#1f4e9c","#2f8a5f","#c98a1a","#c7362f"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:5+Math.random()*6,c:pick(cols)}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(++t<220)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+}
+</script>
+</body>
+</html>

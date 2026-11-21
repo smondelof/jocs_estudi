@@ -10,6 +10,7 @@ Obre `index.html` (o la web publicada amb GitHub Pages) i tria una assignatura.
 - `angles/` – jocs d'anglès
 - `catala/` – jocs de català
 - `mates/` – jocs de matemàtiques
+- `projectes/` – projectes de classe (amb les imatges a `projectes/img/`)
 
 ## Afegir un joc
 

@@ -58,6 +58,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .board .num{font-family:var(--display);font-weight:700;font-size:clamp(2.6rem,11vw,4.6rem);line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:.02em;overflow-wrap:anywhere}
 .board .sfx{font-size:.55em;vertical-align:.7em;margin-left:.04em;color:var(--sun)}
 .board .and{font-size:.45em;opacity:.75;margin:0 .35em;vertical-align:.25em}
+.board .grp.big{font-family:var(--display);font-weight:700;font-size:1.5rem;opacity:1;color:var(--sun);margin-top:6px;letter-spacing:.04em}
 .board .grp{font-size:.9rem;opacity:.8;margin-top:4px}
 .parts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .parts span{background:var(--chip);border-radius:10px;padding:4px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
@@ -116,6 +117,7 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
     <div class="row">
       <button type="button" data-omode="abbr">1 · Una abreviatura (7è o 7a)</button>
       <button type="button" class="ghost" data-omode="both">2 · Masculí i femení (7è i 7a)</button>
+      <button type="button" class="ghost" data-omode="ask">3 · Només la xifra: et diem el gènere (10 números)</button>
     </div>
   </section>
 
@@ -314,6 +316,12 @@ function gCanon(s){
 }
 const toMasc=x=>/(primera|segona|tercera|quarta)$/.test(x)? x.slice(0,-1) : x.replace(/ena$/,"è");
 function gCheck(input,n,g){ return gCanon(input)===expected(n,g); }
+function askReason(input,n,g){
+  const a=gCanon(input), m=ordinal(n), f=ordFem(n);
+  if(a && g==="m" && a===f) return `Et demanàvem el masculí i has escrit el femení. En masculí és «${m}».`;
+  if(a && g==="f" && a===m) return `Et demanàvem el femení i has escrit el masculí. En femení és «${f}».`;
+  return gReason(input,n,g).replace(/^L'abreviatura «[^»]+» és femenina: /,"En femení, ");
+}
 function gReason(input,n,g){
   const a=gCanon(input), m=ordinal(n), f=ordFem(n), ab=`${n}${sfx(n,g)}`;
   if(a && g==="m" && a===f) return `L'abreviatura «${ab}» és masculina (acaba en «${sfx(n,g)}»). Has escrit el femení; en masculí és «${m}».`;
@@ -361,9 +369,9 @@ const groupOf=n=> n<=4?1 : n<=20?2 : n<30?4 : 3;
 const NUMBERS=[...Array.from({length:29},(_,i)=>i+1),30,40,50,60,70,80,90,100];
 function buildRound(){
   // 20 different numbers, with every type present
-  const want=[[1,3],[2,6],[4,5],[3,6]], used=new Set(), list=[];
+  const want= omode==="ask" ? [[1,2],[2,3],[4,2],[3,3]] : [[1,3],[2,6],[4,5],[3,6]], used=new Set(), list=[];
   const pool=d=>NUMBERS.filter(n=>groupOf(n)===d && !used.has(n));
-  want.forEach(([d,c])=>{ shuffle(pool(d)).slice(0,c).forEach(n=>{ used.add(n); list.push({n,d,g: omode==="abbr" ? (Math.random()<.5?"m":"f") : "m"}); }); });
+  want.forEach(([d,c])=>{ shuffle(pool(d)).slice(0,c).forEach(n=>{ used.add(n); list.push({n,d,g: (omode==="abbr"||omode==="ask") ? (Math.random()<.5?"m":"f") : "m"}); }); });
   return shuffle(list);
 }
 function partsOf(n){ return [[caNumber(n),"en cardinal"]]; }
@@ -395,11 +403,13 @@ function renderQ(){
   $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`;
   const both=omode==="both";
   if(both) $("bigNum").innerHTML=`${q.n}<span class="sfx">${sfx(q.n,"m")}</span><span class="and">i</span>${q.n}<span class="sfx">a</span>`;
+  else if(omode==="ask") $("bigNum").textContent=q.n;
   else $("bigNum").innerHTML=`${q.n}<span class="sfx">${sfx(q.n,q.g)}</span>`;
-  $("grp").textContent= both ? "Masculí i femení" : "Abreviatura";
+  $("grp").textContent= both ? "Masculí i femení" : omode==="ask" ? (q.g==="f"?"en FEMENÍ":"en MASCULÍ") : "Abreviatura";
+  $("grp").classList.toggle("big",omode==="ask");
   const a=$("ans"), a2=$("ans2");
   [a,a2].forEach(x=>{ x.value=""; x.className="answer"; x.readOnly=false; });
-  $("ansLbl").textContent= both ? `Masculí (${q.n}${sfx(q.n,"m")}):` : "Escriu l'ordinal amb lletres:";
+  $("ansLbl").textContent= both ? `Masculí (${q.n}${sfx(q.n,"m")}):` : omode==="ask" ? `Escriu l'ordinal en ${q.g==="f"?"femení":"masculí"}:` : "Escriu l'ordinal amb lletres:";
   $("ans2Lbl").textContent=`Femení (${q.n}a):`; $("ans2Lbl").hidden=!both; a2.hidden=!both;
   $("parts").hidden=true; $("fb").hidden=true;
   $("checkBtn").hidden=false; $("helpBtn").hidden=false; $("nextBtn").hidden=true;
@@ -407,7 +417,7 @@ function renderQ(){
 }
 $("helpBtn").onclick=()=>{
   const q=round[idx]; usedHelp=true;
-  $("parts").innerHTML=(omode==="abbr"?`<span>${q.g==="f"?"Femení":"Masculí"}<small>acaba en «${sfx(q.n,q.g)}»</small></span>`:"")+(omode==="both"?`<span>Femení<small>${q.n<=4?"afegeix -a al masculí":"acaba en -ena"}</small></span>`:"")+`<span>${caNumber(q.n)}<small>així es diu el ${q.n}; ara escriu-ne l'ordinal</small></span>`;
+  $("parts").innerHTML=(omode==="ask"?`<span>${q.g==="f"?"Femení":"Masculí"}<small>${q.g==="f"?(q.n<=4?"afegeix -a al masculí":"acaba en -ena"):(q.n<=4?"primer, segon, tercer, quart":"acaba en -è")}</small></span>`:"")+(omode==="abbr"?`<span>${q.g==="f"?"Femení":"Masculí"}<small>acaba en «${sfx(q.n,q.g)}»</small></span>`:"")+(omode==="both"?`<span>Femení<small>${q.n<=4?"afegeix -a al masculí":"acaba en -ena"}</small></span>`:"")+`<span>${caNumber(q.n)}<small>així es diu el ${q.n}; ara escriu-ne l'ordinal</small></span>`;
   $("parts").hidden=false; $("ans").focus();
 };
 $("ans").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(answered) next(); else if(omode==="both") $("ans2").focus(); else grade(); } });
@@ -433,11 +443,11 @@ function gradeBoth(){
 function grade(){
   if(answered) return;
   if(omode==="both") return gradeBoth();
-  const q=round[idx], a=$("ans"), val=a.value, ok= omode==="abbr" ? gCheck(val,q.n,q.g) : (gCheck(val,q.n,"m")||gCheck(val,q.n,"f"));
+  const q=round[idx], a=$("ans"), val=a.value, ok= (omode==="abbr"||omode==="ask") ? gCheck(val,q.n,q.g) : (gCheck(val,q.n,"m")||gCheck(val,q.n,"f"));
   a.classList.add(ok?"ok":"ko"); a.readOnly=true; answered=true; streak= ok? streak+1 : 0;
-  const right= omode==="abbr" ? expected(q.n,q.g) : ordinal(q.n), why= ok? "" : omode==="abbr" ? gReason(val,q.n,q.g) : ordReason(toMasc(gCanon(val)),q.n);
+  const right= (omode==="abbr"||omode==="ask") ? expected(q.n,q.g) : ordinal(q.n), why= ok? "" : omode==="ask" ? askReason(val,q.n,q.g) : omode==="abbr" ? gReason(val,q.n,q.g) : ordReason(toMasc(gCanon(val)),q.n);
   const note = omode!=="abbr" && ok && gCheck(val,q.n,"f") ? `És correcte en femení. En masculí és «${right}».` : ok && ordTidy(val)!==right ? `També és correcte. La forma general és «${right}».` : "";
-  results.push({ok,n:q.n,d:q.d,g:q.g,ab: omode==="abbr" ? `${q.n}${sfx(q.n,q.g)}` : String(q.n),yours:val.trim()||"(buit)",right,why,note,help:usedHelp});
+  results.push({ok,n:q.n,d:q.d,g:q.g,ab: omode==="abbr" ? `${q.n}${sfx(q.n,q.g)}` : omode==="ask" ? `${q.n} en ${q.g==="f"?"femení":"masculí"}` : String(q.n),yours:val.trim()||"(buit)",right,why,note,help:usedHelp});
   beep(ok);
   const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
   fb.innerHTML = ok ? `${pick(["Molt bé!","Perfecte!","Genial!","Ets un crac!","Correcte!"])}${streak>=3?` ${streak} seguits!`:""}<small>${right}${note?"<br>"+note:""}</small>`
@@ -481,11 +491,11 @@ function buildReport(){
     `Ajuda utilitzada en ${results.filter(r=>r.help).length} números`,"","ENCERTS PER TIPUS","-----------------"];
   GROUPS.forEach(g=>{ const r=results.filter(x=>x.d===g.d); if(r.length) L.push(`${g.name}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
   if(omode==="both") L.push(`Exercici: masculí i femení alhora`,`Formes masculines correctes: ${results.filter(r=>r.okM).length} de ${results.length}`,`Formes femenines correctes: ${results.filter(r=>r.okF).length} de ${results.length}`);
-  if(omode==="abbr") ["m","f"].forEach(g=>{ const r=results.filter(x=>x.g===g); if(r.length) L.push(`${g==="f"?"Femenins":"Masculins"}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  if(omode==="abbr"||omode==="ask") ["m","f"].forEach(g=>{ const r=results.filter(x=>x.g===g); if(r.length) L.push(`${g==="f"?"Femenins":"Masculins"}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
   L.push("","PREGUNTES I RESPOSTES","---------------------");
   results.forEach((r,i)=>{ L.push(`${i+1}. ${r.ab}${omode==="abbr"?(r.g==="f"?" (femení)":" (masculí)"):""}${r.help?" (amb ajuda)":""}`,`   Ha escrit: ${r.yours}`,`   Correcte: ${r.right}`,`   Resultat: ${r.ok?"ENCERT":"ERROR"}`);
     if(!r.ok) L.push(`   Motiu: ${r.why}`); else if(r.note) L.push(`   Nota: ${r.note}`); L.push(""); });
-  L.push("RECORDA","-------","1 primer, 2 segon, 3 tercer, 4 quart. A partir del 5 s'afegeix -è: cinquè, sisè, novè, desè.","21 vint-i-unè, 24 vint-i-quatrè, 29 vint-i-novè. Desenes: vintè, trentè, quarantè… centè.","Abreviatures: 1r, 2n, 3r, 4t, 5è… són masculines. 1a, 5a… són femenines: primera, cinquena, vint-i-unena.");
+  L.push("RECORDA","-------","1 primer, 2 segon, 3 tercer, 4 quart. A partir del 5 s'afegeix -è: cinquè, sisè, novè, desè.","21 vint-i-unè, 24 vint-i-quatrè, 29 vint-i-novè. Desenes: vintè, trentè, quarantè… centè.","Masculí: primer, segon, tercer, quart, cinquè… Femení: primera, segona, tercera, quarta, cinquena…","Abreviatures: 1r, 2n, 3r, 4t, 5è… són masculines. 1a, 5a… són femenines: primera, cinquena, vint-i-unena.");
   $("reportText").value=L.join("\n");
 }
 function saveFile(name,text){
