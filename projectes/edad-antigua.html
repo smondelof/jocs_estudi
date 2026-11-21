@@ -94,6 +94,12 @@ textarea.ok{border-color:var(--good);background:var(--good-bg)} textarea.ko{bord
 .tile img{width:84px;height:70px;object-fit:cover;border-radius:8px}
 .slots .tile{background:var(--accent);color:var(--accent-ink)}
 .slots .tile .pos{font-size:.75rem;opacity:.85}
+.puzzle{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:3px;background:var(--line);padding:3px;border-radius:12px;aspect-ratio:900/610;width:100%}
+.puzzle .pc{padding:0;border-radius:4px;background-image:url(img/linea-tiempo.jpg);background-size:calc(var(--cols)*100%) calc(var(--rows)*100%);box-shadow:none;min-height:0;width:100%;height:100%}
+.puzzle .pc.sel{outline:4px solid var(--sun);outline-offset:-4px;filter:brightness(1.08)}
+.puzzle .pc.wrongpc{outline:4px solid var(--bad);outline-offset:-4px}
+.puzzle.solved{gap:0;padding:0;background:transparent;outline:4px solid var(--good);outline-offset:3px} .puzzle.solved .pc{border-radius:0}
+.puzzle.given{gap:0;padding:0;background:transparent}
 .reveal{background:var(--bg);border-radius:14px;padding:10px}
 .reveal img{width:100%;height:auto;border-radius:10px}
 .fb{border-radius:12px;padding:12px 14px;font-weight:700}
@@ -142,7 +148,7 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
       <button type="button" class="ghost" data-mode="def">2 · Define conceptos<small>5 conceptos</small></button>
       <button type="button" class="ghost" data-mode="art">3 · El arte<small>¿Mesopotamia o Egipto?</small></button>
       <button type="button" class="ghost" data-mode="match">4 · Relaciona<small>Conceptos y definiciones</small></button>
-      <button type="button" class="ghost" data-mode="time">5 · Línea del tiempo<small>Ordena la Edad Antigua</small></button>
+      <button type="button" class="ghost" data-mode="time">5 · Línea del tiempo<small>Ordena y monta el puzle</small></button>
     </div>
   </section>
 
@@ -329,7 +335,12 @@ const TIME=[
   items:[{t:"3000 aC"},{t:"2000 aC"},{t:"1000 aC"},{t:"0"},{t:"476 dC"}],
   why:"Antes de Cristo, cuanto más grande es el número, más antiguo es: 3000 aC, 2000 aC, 1000 aC, el año 0 y después 476 dC."},
 ];
-function buildTime(){ return TIME.map(t=>({part:"time",t,tiles:shuffleNot(t.items)})); }
+const PZ={cols:4,rows:3};
+function buildTime(){
+  const n=PZ.cols*PZ.rows; let order;
+  do{ order=shuffle(Array.from({length:n},(_,i)=>i)); }while(order.filter((p,i)=>p===i).length>2);
+  return [...TIME.map(t=>({part:"time",t,tiles:shuffleNot(t.items)})), {part:"time",t:{id:"puzzle",prompt:"Monta el puzle de la línea del tiempo."},order,moves:0,checks:0}];
+}
 function shuffleNot(a){ let s,n=0; do{ s=shuffle(a); n++; }while(s.every((x,i)=>x===a[i]) && n<30); return s; }
 
 const PARTS={tf:"Verdadero o falso",def:"Define conceptos",art:"El arte",match:"Relaciona",time:"Línea del tiempo"};
@@ -389,6 +400,8 @@ function render(){
     B.querySelectorAll(".zones button").forEach(b=>b.onclick=()=>gradeArt(b));
   } else if(q.part==="match"){
     renderMatch(q);
+  } else if(q.t.id==="puzzle"){
+    renderPuzzle(q);
   } else {
     built=[];
     B.innerHTML=`<div class="prompt">${esc(q.t.prompt)}</div><p class="small muted" style="margin:0">Toca las tarjetas en orden. Toca una tarjeta colocada para quitarla.</p>
@@ -443,9 +456,43 @@ function gradeTime(){
   $("slots").classList.add(ok?"ok":"ko");
   record({ok,part:"time",asked:q.t.prompt,yours:got.join(" → "),right:right.join(" → "),why:ok?"":q.t.why});
   feedback(ok,esc(right.join(" → ")),`El orden correcto es: ${esc(right.join(" → "))}. ${esc(q.t.why)}`);
-  if(si===steps.length-1 || steps[si+1].part!=="time"){
-    $("fb").insertAdjacentHTML("afterend",`<div class="reveal" id="reveal"><div class="tag" style="margin-bottom:6px">La línea del tiempo de tu hoja</div><img src="img/linea-tiempo.jpg" alt="Línea del tiempo de la Edad Antigua: Mesopotamia, Egipto, Grecia y Roma, del 3000 aC al 476 dC"></div>`);
-  }
+}
+// puzzle: tap two pieces to swap them
+let pzSel=null;
+function renderPuzzle(q){
+  pzSel=null;
+  $("qBody").innerHTML=`<div class="prompt">Monta el puzle de la línea del tiempo de tu hoja.</div>
+    <p class="small muted" style="margin:0">Toca una pieza y después otra para cambiarlas de sitio. Fíjate en las fechas, los colores de cada civilización y los niños de arriba.</p>
+    <div class="puzzle" id="puzzle" style="--cols:${PZ.cols};--rows:${PZ.rows}"></div>
+    <div class="row"><span class="small muted" id="pzInfo"></span></div>
+    <div class="row"><button type="button" class="ghost" id="pzCheck">¿Lo tengo bien?</button><button type="button" class="ghost" id="pzGive">Ver la solución</button></div>`;
+  drawPuzzle(q);
+  $("pzCheck").onclick=()=>{ if(answered) return; q.checks++; const bad=[...$("puzzle").children].filter((el,i)=>q.order[i]!==i);
+    bad.forEach(el=>{ el.classList.add("wrongpc"); setTimeout(()=>el.classList.remove("wrongpc"),900); });
+    $("pzInfo").textContent = bad.length ? `Hay ${bad.length} piezas fuera de su sitio (se marcan en rojo un momento).` : ""; };
+  $("pzGive").onclick=()=>{ if(answered) return; q.order=q.order.map((_,i)=>i); drawPuzzle(q); puzzleDone(q,true); };
+}
+function drawPuzzle(q){
+  const P=$("puzzle"); P.innerHTML="";
+  q.order.forEach((piece,pos)=>{
+    const c=piece%PZ.cols, r=Math.floor(piece/PZ.cols);
+    const b=document.createElement("button"); b.type="button"; b.className="pc"+(pzSel===pos?" sel":""); b.setAttribute("aria-label",`Pieza en la posición ${pos+1}`);
+    b.style.backgroundPosition=`${c*100/(PZ.cols-1)}% ${r*100/(PZ.rows-1)}%`;
+    b.onclick=()=>{ if(answered) return;
+      if(pzSel===null){ pzSel=pos; drawPuzzle(q); return; }
+      if(pzSel!==pos){ [q.order[pzSel],q.order[pos]]=[q.order[pos],q.order[pzSel]]; q.moves++; }
+      pzSel=null; drawPuzzle(q);
+      if(q.order.every((p,i)=>p===i)) puzzleDone(q,false); };
+    P.append(b);
+  });
+  $("pzInfo") && ($("pzInfo").textContent=`Movimientos: ${q.moves}`);
+}
+function puzzleDone(q,gaveUp){
+  answered=true; $("puzzle").classList.add(gaveUp?"given":"solved");
+  $("pzCheck").hidden=true; $("pzGive").hidden=true;
+  record({ok:!gaveUp,part:"time",asked:"Puzle de la línea del tiempo",yours: gaveUp?`No lo terminó (pidió la solución tras ${q.moves} movimientos)`:`Montado en ${q.moves} movimientos`,right:"Línea del tiempo montada",
+    why: gaveUp?"Ha pedido ver la solución. Orden: Prehistoria, Edad Antigua (Mesopotamia, Egipto, Grecia y Roma, del 3000 aC al 476 dC) y Edad Media.":""});
+  feedback(!gaveUp,`¡Puzle completado en ${q.moves} movimientos! Mesopotamia, Egipto, Grecia y Roma, del 3000 aC al 476 dC.`,"Aquí tienes la línea del tiempo montada. Fíjate en el orden: Mesopotamia, Egipto, Grecia y Roma, del 3000 aC al 476 dC.");
 }
 
 // matching: tap a concept, then its definition
@@ -476,7 +523,7 @@ function matchTry(q,b){
   mSel=null; hud();
   if(mDone.size===q.pairs.length){ answered=true; $("nextBtn").hidden=false; $("nextBtn").textContent= si===steps.length-1? "Ver el resultado":"Siguiente"; setTimeout(()=>$("nextBtn").focus(),20); }
 }
-$("nextBtn").onclick=()=>{ const r=$("reveal"); if(r) r.remove(); si++; if(si>=steps.length) finish(); else render(); };
+$("nextBtn").onclick=()=>{ si++; if(si>=steps.length) finish(); else render(); };
 
 // ---------- results ----------
 const STAR=f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;

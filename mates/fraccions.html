@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les Fraccions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one centered game card on squared (graph) paper; fractions drawn as pies, bars and grids that can be read, chosen or painted */
+:root{
+  --bg:#eef8f2; --paper:#ffffff; --ink:#18291f; --muted:#5b7466; --line:#cfe6d8; --grid:#dcefe3;
+  --accent:#0f8a68; --accent-ink:#ffffff; --sun:#ffc531; --good:#14905a; --good-bg:#dff5ea;
+  --bad:#d33c3c; --bad-bg:#fde6e6; --chip:#e0f2e8; --stroke:#18291f;
+  --f1:#ffd166; --f2:#8ecae6; --f3:#f4a3b8; --f4:#b8e0a0; --f5:#cdb4f7; --f6:#ffb07c; --f7:#9ee6d8; --f8:#f7e08a;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1a14; --paper:#17251d; --ink:#e6f5ec; --muted:#9fbfae; --line:#2a4234; --grid:#1d3026;
+  --accent:#4fd1a5; --accent-ink:#0b1d15; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#21362a; --stroke:#e6f5ec;
+  --f1:#b8912f; --f2:#3f7f99; --f3:#a65468; --f4:#5f8f47; --f5:#7a5fae; --f6:#b3683a; --f7:#3f9c8c; --f8:#a8923a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1a14; --paper:#17251d; --ink:#e6f5ec; --muted:#9fbfae; --line:#2a4234; --grid:#1d3026;
+  --accent:#4fd1a5; --accent-ink:#0b1d15; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#21362a; --stroke:#e6f5ec;
+  --f1:#b8912f; --f2:#3f7f99; --f3:#a65468; --f4:#5f8f47; --f5:#7a5fae; --f6:#b3683a; --f7:#3f9c8c; --f8:#a8923a; color-scheme:dark }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),linear-gradient(90deg,var(--grid) 1px, transparent 1px);background-size:24px 24px}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.back{flex-basis:100%;font-family:var(--display);font-weight:600;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);margin:0;line-height:1.1}
+h1 span{background:var(--sun);color:#18291f;padding:0 .25em;border-radius:6px;display:inline-block;transform:rotate(-2deg)}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 6px 0 var(--line)}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font-family:var(--display);font-weight:600;font-size:1.05rem;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);transition:transform .08s}
+button:active{transform:translateY(3px)}
+button.ghost{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+button:disabled{cursor:default}
+button:focus-visible,a:focus-visible,polygon:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.tag{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:600}
+.bar{height:12px;background:var(--chip);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:999px;transition:width .3s}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps span{font-family:var(--display);font-size:.85rem;font-weight:600;border-radius:999px;padding:3px 12px;background:var(--chip);color:var(--muted)}
+.steps span.on{background:var(--accent);color:var(--accent-ink)}
+.steps span.done{background:var(--good-bg);color:var(--good)}
+/* theory */
+.theory{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.theory .col{background:var(--bg);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.theory h3{font-family:var(--display);font-size:1.05rem;margin:0}
+.theory .shapes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.theory figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.theory figure svg{width:100%;max-width:120px;height:auto}
+.theory figcaption{font-family:var(--display);font-weight:600;font-size:.95rem}
+.theory figcaption small{display:block;font-family:var(--body);font-weight:400;font-size:.78rem;color:var(--muted);line-height:1.3}
+details.th summary{cursor:pointer;font-family:var(--display);font-weight:600;color:var(--accent)}
+.modes{display:flex;gap:10px;flex-wrap:wrap}
+/* questions */
+.prompt{font-size:1.25rem}
+.statement{font-family:var(--display);font-weight:600;font-size:clamp(1.3rem,4vw,1.6rem);line-height:1.3;background:var(--bg);border-radius:14px;padding:16px 18px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts button{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line);font-size:1.15rem;padding:14px}
+.opts button.ok{background:var(--good);color:#fff} .opts button.ko{background:var(--bad);color:#fff}
+.stage{background:var(--bg);border-radius:16px;padding:8px;display:flex;justify-content:center}
+.stage svg{width:100%;height:auto;display:block}
+.stage.single svg{max-width:340px}
+svg polygon.fig{stroke:var(--stroke);stroke-width:3;stroke-linejoin:round}
+svg polygon.pick{cursor:pointer;transition:filter .15s}
+svg polygon.pick:hover{filter:brightness(1.08) drop-shadow(0 0 4px var(--accent))}
+svg polygon.found{fill:var(--good)!important;cursor:default}
+svg polygon.wrongpick{fill:var(--bad)!important}
+svg polygon.show{stroke:var(--good);stroke-width:6}
+svg text.lbl{font-family:var(--display);font-weight:700;font-size:20px;fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:5px;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.target{font-family:var(--display);font-weight:700;font-size:1.5rem;color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);border-radius:999px;padding:3px 11px;font-size:.92rem}
+.chip.ok{background:var(--good-bg);color:var(--good);font-weight:700}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ok{background:var(--good-bg);color:var(--good)} .fb.ko{background:var(--bad-bg);color:var(--bad)}
+.fb small{display:block;font-weight:400;color:var(--ink);margin-top:2px}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
+.stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat div{border-radius:12px;padding:8px 14px;font-family:var(--display);font-weight:600}
+.stat .g{background:var(--good-bg);color:var(--good)} .stat .b{background:var(--bad-bg);color:var(--bad)}
+.bycat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.bycat div{background:var(--bg);border-radius:12px;padding:8px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.bycat span{display:block;font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted)}
+.miss{display:flex;flex-direction:column;gap:10px}
+.miss article{border-left:5px solid var(--bad);background:var(--bg);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.miss .q{font-weight:700} .miss .yours{color:var(--bad)} .miss .right{color:var(--good);font-weight:700}
+textarea.report{width:100%;min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.45;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical}
+details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;margin-top:4px}
+.replist{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 12px}
+.rep-row .info{min-width:0;font-variant-numeric:tabular-nums}
+.rep-row button{padding:7px 12px;font-size:.92rem}
+@media (max-width:520px){ .card{padding:16px} .theory{grid-template-columns:1fr} .opts{grid-template-columns:1fr 1fr} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease-out}
+#confetti{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+
+/* fractions */
+.frac{display:inline-flex;flex-direction:column;align-items:center;font-family:var(--display);font-weight:700;line-height:1.05;vertical-align:middle;font-size:1.15em}
+.frac i{display:block;width:100%;min-width:1.2em;height:3px;background:currentColor;border-radius:2px;margin:2px 0}
+.frac.big{font-size:2.4rem} .frac.huge{font-size:3rem}
+.eq{font-family:var(--display);font-size:1.6rem} .eq.big{font-size:2.2rem;color:var(--muted)}
+.theory2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.theory2 .col{background:var(--bg);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+.frac-stage{min-height:150px;align-items:center}
+.frac-stage svg{max-width:320px}
+svg .part{stroke:var(--stroke);stroke-width:2.5;stroke-linejoin:round}
+svg .paintable{fill:var(--paper);cursor:pointer}
+svg .paintable.on{fill:var(--accent)}
+svg .paintable:focus-visible{outline:none;stroke:var(--sun);stroke-width:5}
+.paint-svg.good .paintable.on{fill:var(--good)} .paint-svg.bad{outline:3px solid var(--bad);outline-offset:4px;border-radius:6px}
+.answer-frac{display:flex;justify-content:center}
+.frac-in{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+.frac-in i{display:block;width:84px;height:4px;background:var(--ink);border-radius:2px}
+.frac-in .fixed{font-family:var(--display);font-weight:700;font-size:2.4rem;line-height:1}
+.nbox{width:84px;font-family:var(--display);font-weight:700;font-size:1.9rem;text-align:center;padding:4px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.nbox:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.nbox.ok{border-color:var(--good);background:var(--good-bg)} .nbox.ko{border-color:var(--bad);background:var(--bad-bg)}
+.opts.one{grid-template-columns:1fr} .opts.four{grid-template-columns:repeat(4,1fr)}
+.opts.four button{padding:10px 4px;font-size:1.3rem}
+.pick3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pick3 button{background:var(--bg);box-shadow:0 4px 0 var(--line);padding:10px;display:flex;align-items:center;justify-content:center;min-height:120px}
+.pick3 button svg{width:100%;height:auto;max-height:150px}
+.pick3 button.ok{background:var(--good-bg)!important;outline:3px solid var(--good)} .pick3 button.ko{background:var(--bad-bg)!important;outline:3px solid var(--bad)}
+.bars{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.bars div{display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700}
+.bars svg{width:180px;height:auto}
+@media (max-width:520px){ .theory2{grid-template-columns:1fr} .opts.four{grid-template-columns:1fr 1fr} .pick3{grid-template-columns:1fr 1fr 1fr;gap:6px} .pick3 button{padding:6px;min-height:90px} .bars svg{width:140px} }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <a class="back" href="../index.html">← Tots els jocs</a>
+    <h1>Les <span>Fraccions</span></h1>
+    <button class="ghost" id="soundBtn" aria-pressed="true" type="button">So: sí</button>
+  </header>
+
+  <section class="card" id="start">
+    <h2>Fraccions ordinàries i equivalents</h2>
+    <div class="theory2">
+      <div class="col">
+        <div class="frac big"><span>3</span><i></i><span>4</span></div>
+        <p style="margin:0"><b>Numerador</b> (a dalt): les parts que agafem o pintem.<br><b>Denominador</b> (a baix): les parts iguals en què dividim la unitat.</p>
+        <p class="small muted" style="margin:0">Es llegeix «tres quarts».</p>
+      </div>
+      <div class="col">
+        <div class="row" style="justify-content:center;gap:8px"><div class="frac"><span>1</span><i></i><span>2</span></div><b class="eq">=</b><div class="frac"><span>2</span><i></i><span>4</span></div><b class="eq">=</b><div class="frac"><span>4</span><i></i><span>8</span></div></div>
+        <p style="margin:0">Les fraccions <b>equivalents</b> representen la mateixa quantitat. Es fan multiplicant o dividint el numerador i el denominador <b>pel mateix número</b>.</p>
+      </div>
+    </div>
+    <div>
+      <div class="tag" style="margin-bottom:8px">Tria què vols fer</div>
+      <div class="modes">
+        <button type="button" data-mode="all">Prova completa</button>
+        <button type="button" class="ghost" data-mode="ord">1 · Fraccions ordinàries</button>
+        <button type="button" class="ghost" data-mode="eq">2 · Fraccions equivalents</button>
+      </div>
+    </div>
+    <p class="muted small" style="margin:0">Cada vegada les fraccions i els dibuixos són diferents.</p>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="steps" id="steps"></div>
+    <div class="hud"><span id="qCount"></span><span id="hudScore"></span></div>
+    <div class="bar"><i id="barFill" style="width:0%"></i></div>
+    <div class="tag" id="qType"></div>
+    <form id="qForm" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
+      <div id="qBody" style="display:flex;flex-direction:column;gap:14px"></div>
+      <div id="fb" hidden></div>
+      <div class="row"><button type="submit" id="checkBtn" hidden>Comprova</button><button type="button" id="nextBtn" hidden>Següent</button></div>
+    </form>
+  </section>
+
+  <section class="card" id="results" hidden>
+    <h2 id="resTitle"></h2>
+    <div class="score">
+      <div class="num" id="resNum"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="stars" id="resStars"></div>
+        <div class="stat"><div class="g" id="resOk"></div><div class="b" id="resKo"></div></div>
+      </div>
+    </div>
+    <div><div class="tag" style="margin-bottom:8px">Encerts per tipus</div><div class="bycat" id="byCat"></div></div>
+    <div id="missBlock"><div class="tag" style="margin-bottom:8px">Errors i per què</div><div class="miss" id="missList"></div></div>
+    <div id="reportBlock" style="display:flex;flex-direction:column;gap:8px">
+      <div class="tag">Informe de la prova</div>
+      <div class="row">
+        <button type="button" id="dlBtn">Descarrega l'informe (.txt)</button>
+        <button type="button" class="ghost" id="copyBtn">Copia l'informe</button>
+      </div>
+      <span class="small muted" id="dlMsg" aria-live="polite"></span>
+      <details class="rep"><summary>Mostra l'informe</summary><textarea class="report" id="reportText" readonly aria-label="Informe"></textarea></details>
+    </div>
+    <div class="row">
+      <button type="button" id="againBtn">Torna a jugar (tot nou)</button>
+      <button type="button" class="ghost" id="homeBtn">Inici</button>
+    </div>
+  </section>
+
+  <section class="card" id="reports" hidden>
+    <h2>Informes desats</h2>
+    <p class="muted small" style="margin:0">Cada prova acabada es desa aquí automàticament perquè el mestre la pugui revisar. Els més nous primer.</p>
+    <div class="replist" id="repList"></div>
+    <span class="small muted" id="repMsg" aria-live="polite"></span>
+  </section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const fr=(n,d)=>`<span class="frac"><span>${n}</span><i></i><span>${d}</span></span>`;
+const ft=(n,d)=>`${n}/${d}`;
+
+// ---------- reading fractions in Catalan ----------
+const NUMW=["","un","dos","tres","quatre","cinc","sis","set","vuit","nou","deu"];
+const DEN={2:["mig","mitjos"],3:["terç","terços"],4:["quart","quarts"],5:["cinquè","cinquens"],6:["sisè","sisens"],7:["setè","setens"],8:["vuitè","vuitens"],9:["novè","novens"],10:["desè","desens"]};
+const fname=(n,d)=> n===1 ? `un ${DEN[d][0]}` : `${NUMW[n]} ${DEN[d][1]}`;
+
+// ---------- drawings ----------
+const FILLS=["--f1","--f2","--f3","--f4","--f5","--f6","--f7"];
+function drawFrac(n,d,kind,fill,size){
+  const S=size||200, col=`var(${fill})`;
+  if(kind==="pie"){
+    const r=S/2-6, c=S/2; let out="";
+    if(d===1) return `<svg viewBox="0 0 ${S} ${S}" aria-hidden="true"><circle cx="${c}" cy="${c}" r="${r}" class="part" style="fill:${n?col:"var(--paper)"}"/></svg>`;
+    for(let i=0;i<d;i++){
+      const a0=-Math.PI/2+i*2*Math.PI/d, a1=a0+2*Math.PI/d;
+      const x0=c+r*Math.cos(a0), y0=c+r*Math.sin(a0), x1=c+r*Math.cos(a1), y1=c+r*Math.sin(a1);
+      out+=`<path class="part" d="M${c},${c} L${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" style="fill:${i<n?col:"var(--paper)"}"/>`;
+    }
+    return `<svg viewBox="0 0 ${S} ${S}" aria-hidden="true">${out}</svg>`;
+  }
+  if(kind==="grid"){ // two rows when d is even
+    const rows=2, cols=d/2, w=(S*1.6-8)/cols, h=(S*0.8-8)/rows; let out="", k=0;
+    const order=shuffle(Array.from({length:d},(_,i)=>i)).slice(0,n);
+    for(let r=0;r<rows;r++) for(let c2=0;c2<cols;c2++,k++) out+=`<rect class="part" x="${4+c2*w}" y="${4+r*h}" width="${w}" height="${h}" style="fill:${order.includes(k)?col:"var(--paper)"}"/>`;
+    return `<svg viewBox="0 0 ${S*1.6} ${S*0.8}" aria-hidden="true">${out}</svg>`;
+  }
+  // bar
+  const W=S*1.6, w=(W-8)/d; let out="";
+  for(let i=0;i<d;i++) out+=`<rect class="part" x="${4+i*w}" y="4" width="${w}" height="${S*0.45}" style="fill:${i<n?col:"var(--paper)"}"/>`;
+  return `<svg viewBox="0 0 ${W} ${S*0.45+8}" aria-hidden="true">${out}</svg>`;
+}
+
+function drawPaint(d,kind){
+  const S=200; let out="";
+  if(kind==="pie"){ const r=S/2-6, c=S/2;
+    for(let i=0;i<d;i++){ const a0=-Math.PI/2+i*2*Math.PI/d, a1=a0+2*Math.PI/d;
+      out+=`<path class="part paintable" data-p="${i}" tabindex="0" role="button" aria-label="part ${i+1}" aria-pressed="false" d="M${c},${c} L${(c+r*Math.cos(a0)).toFixed(1)},${(c+r*Math.sin(a0)).toFixed(1)} A${r},${r} 0 0 1 ${(c+r*Math.cos(a1)).toFixed(1)},${(c+r*Math.sin(a1)).toFixed(1)} Z"/>`; }
+    return `<svg viewBox="0 0 ${S} ${S}" class="paint-svg">${out}</svg>`; }
+  if(kind==="grid"){ const cols=d/2, w=(S*1.6-8)/cols, h=(S*0.8-8)/2; let k=0;
+    for(let r=0;r<2;r++) for(let c2=0;c2<cols;c2++,k++) out+=`<rect class="part paintable" data-p="${k}" tabindex="0" role="button" aria-label="part ${k+1}" aria-pressed="false" x="${4+c2*w}" y="${4+r*h}" width="${w}" height="${h}"/>`;
+    return `<svg viewBox="0 0 ${S*1.6} ${S*0.8}" class="paint-svg">${out}</svg>`; }
+  const W=S*1.6, w=(W-8)/d;
+  for(let i=0;i<d;i++) out+=`<rect class="part paintable" data-p="${i}" tabindex="0" role="button" aria-label="part ${i+1}" aria-pressed="false" x="${4+i*w}" y="4" width="${w}" height="${S*0.45}"/>`;
+  return `<svg viewBox="0 0 ${W} ${S*0.45+8}" class="paint-svg">${out}</svg>`;
+}
+function bindPaint(){
+  const upd=()=>{ const n=$("qBody").querySelectorAll(".paintable.on").length; const c=$("paintCount"); if(c) c.textContent=`Parts pintades: ${n}`; };
+  $("qBody").querySelectorAll(".paintable").forEach(p=>{ const t=()=>{ if(answered) return; p.classList.toggle("on"); p.setAttribute("aria-pressed",p.classList.contains("on")); upd(); };
+    p.addEventListener("click",t); p.addEventListener("keydown",e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); t(); } }); });
+  upd();
+}
+// ---------- question builders ----------
+const TYPES={draw:"Escriu la fracció",choose:"Tria la fracció",pickdraw:"Tria el dibuix",paint:"Pinta la fracció",read:"Com es llegeix?",parts:"Numerador i denominador",same:"Són equivalents?",fill:"Completa l'equivalent",painteq:"Pinta l'equivalent"};
+const GROUP={draw:"ord",choose:"ord",pickdraw:"ord",paint:"ord",read:"ord",parts:"ord",same:"eq",fill:"eq",painteq:"eq"};
+function qDraw(){
+  const d=ri(2,10), n=ri(1,d-1), kind= d%2===0 && d>=4 && Math.random()<.4 ? "grid" : d<=8 && Math.random()<.5 ? "pie" : "bar";
+  return {type:"draw",n,d,kind,fill:pick(FILLS)};
+}
+function kindFor(d){ return d%2===0 && d>=4 && Math.random()<.35 ? "grid" : d<=8 && Math.random()<.5 ? "pie" : "bar"; }
+function qChoose(){
+  const d=ri(3,10), n=ri(1,d-1), opts=new Set([ft(n,d)]);
+  [ft(d,n), ft(d-n,d), ft(n,d+1<=12?d+1:d-1), ft(n,d-n>0?d-n:d+2), ft(n===1?2:n-1,d)].forEach(o=>{ if(opts.size<4 && o!==ft(n,d) && !o.startsWith("0")) opts.add(o); });
+  return {type:"choose",n,d,kind:kindFor(d),fill:pick(FILLS),opts:shuffle([...opts])};
+}
+function qPickDraw(){
+  const d=ri(3,8), n=ri(1,d-1), kind=pick(["pie","bar"]);
+  const cands=[[d-n,d],[n,d+1],[n+1<d?n+1:n-1,d],[n,d-1>n?d-1:d+2]].filter(([a,b])=>a>0 && b>a-0 && !(a===n&&b===d) && b<=10);
+  const wrong=[]; shuffle(cands).forEach(c=>{ if(wrong.length<2 && !wrong.some(w=>w[0]===c[0]&&w[1]===c[1]) && !(c[0]*d===n*c[1])) wrong.push(c); });
+  const opts=shuffle([[n,d],...wrong]).map(([a,b])=>({a,b,fill:pick(FILLS)}));
+  return {type:"pickdraw",n,d,kind,opts};
+}
+function qPaint(){ const d=ri(3,10), n=ri(1,d-1); return {type:"paint",n,d,kind:kindFor(d)}; }
+function qPaintEq(){ const [a,b]=baseFrac(), k=ri(2,3); return {type:"painteq",a,b,k,n:a*k,d:b*k,kind:b*k<=8?pick(["bar","pie"]):"bar"}; }
+function qRead(){
+  const d=ri(2,10), n=ri(1,Math.min(9,d-1)||1), right=fname(n,d), opts=new Set([right]);
+  const cands=[ n<=10 && d>=1 && DEN[n]? fname(d<=10?Math.min(d,10):d, n) : null, DEN[d+1]?fname(n,d+1):null, DEN[d-1]?fname(n,d-1):null, `${NUMW[n]} ${NUMW[d]}`, n+1<d?fname(n+1,d):null ].filter(Boolean);
+  shuffle(cands).forEach(c=>{ if(opts.size<3 && c!==right) opts.add(c); });
+  return {type:"read",n,d,right,opts:shuffle([...opts])};
+}
+function qParts(){
+  const d=ri(2,12), n=ri(1,d-1), ask=pick(["num","den"]);
+  return {type:"parts",n,d,ask};
+}
+function baseFrac(){ let a,b; do{ b=ri(2,6); a=ri(1,b-1); }while(gcd(a,b)!==1); return [a,b]; }
+function qSame(){
+  const [a,b]=baseFrac(), k=ri(2,4), yes=Math.random()<.5;
+  let c,d,trick="";
+  if(yes){ c=a*k; d=b*k; }
+  else {
+    const t=pick(["add","onlytop","onlybottom","near"]);
+    if(t==="add"){ c=a+k; d=b+k; trick="add"; }
+    else if(t==="onlytop"){ c=a*k; d=b; trick="top"; }
+    else if(t==="onlybottom"){ c=a; d=b*k; trick="bottom"; }
+    else { c=a*k+1; d=b*k; trick="near"; }
+    if(c*b===a*d){ c=a*k; d=b*k+1; trick="near"; }
+  }
+  const flip=Math.random()<.5;
+  return {type:"same",a:flip?c:a,b:flip?d:b,c:flip?a:c,d:flip?b:d,yes,k,trick,base:[a,b]};
+}
+function qFill(){
+  const [a,b]=baseFrac(), k=ri(2,5), miss=pick(["num","den"]), big=[a*k,b*k], flip=Math.random()<.3;
+  return {type:"fill",a,b,k,miss,big,flip};
+}
+function buildRound(mode){
+  const qs=[];
+  if(mode!=="eq"){ for(let i=0;i<3;i++) qs.push(qDraw()); for(let i=0;i<2;i++){ qs.push(qChoose()); qs.push(qPickDraw()); qs.push(qPaint()); qs.push(qRead()); } qs.push(qParts()); }
+  if(mode!=="ord"){ const s=[]; s.push({...qSame(),yes:true}); for(let i=0;i<2;i++) s.push(qSame()); for(let i=0;i<3;i++) s.push(qFill()); for(let i=0;i<2;i++) s.push(qPaintEq()); qs.push(...s); }
+  // make sure "Són equivalents?" has at least one yes and one no
+  const same=qs.filter(q=>q.type==="same");
+  if(same.length && same.every(q=>q.yes)){ const i=qs.indexOf(same[0]); let q; do{ q=qSame(); }while(q.yes); qs[i]=q; }
+  if(same.length && same.every(q=>!q.yes)){ const i=qs.indexOf(same[0]); let q; do{ q=qSame(); }while(!q.yes); qs[i]=q; }
+  const ord=shuffle(qs.filter(q=>GROUP[q.type]==="ord")), eq=shuffle(qs.filter(q=>GROUP[q.type]==="eq"));
+  return [...ord,...eq];
+}
+// fix: qSame with forced yes must really be equivalent
+function forceYes(q){ const [a,b]=q.base, k=q.k; return {...q,a,b,c:a*k,d:b*k,yes:true,trick:""}; }
+
+// ---------- sound ----------
+let sound=true; try{ if(localStorage.getItem("fr-sound")==="off") sound=false; }catch(e){}
+const setSoundBtn=()=>{ $("soundBtn").textContent="So: "+(sound?"sí":"no"); $("soundBtn").setAttribute("aria-pressed",String(sound)); };
+setSoundBtn();
+$("soundBtn").onclick=()=>{ sound=!sound; setSoundBtn(); try{localStorage.setItem("fr-sound",sound?"on":"off")}catch(e){} };
+let actx=null;
+function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+  (ok?[660,880]:[300,220]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"sawtooth";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*0.11);g.gain.exponentialRampToValueAtTime(ok?0.18:0.08,t+i*0.11+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.11+0.16);
+  o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
+
+// ---------- game ----------
+const PARTS={ord:"Fraccions ordinàries",eq:"Fraccions equivalents"};
+let round=[], idx=0, results=[], streak=0, answered=false, mode="all", partsIn=[];
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; startRound(); });
+$("againBtn").onclick=startRound;
+$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; };
+function startRound(){
+  round=buildRound(mode).map(q=> q.type==="same" && q.yes && q.trick ? forceYes(q) : q);
+  partsIn=[...new Set(round.map(q=>GROUP[q.type]))]; idx=0; results=[]; streak=0;
+  ["start","results","reports"].forEach(i=>$(i).hidden=true); $("quiz").hidden=false; renderQ();
+}
+function hud(){ $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`; }
+const numIn=(id,label)=>`<input type="text" inputmode="numeric" pattern="[0-9]*" class="nbox" id="${id}" aria-label="${label}" autocomplete="off">`;
+function renderQ(){
+  const q=round[idx]; answered=false; const g=GROUP[q.type];
+  $("steps").hidden=partsIn.length<2;
+  $("steps").innerHTML=partsIn.map((p,i)=>`<span class="${p===g?"on":partsIn.indexOf(g)>i?"done":""}">${i+1} · ${PARTS[p]}</span>`).join("");
+  $("qCount").textContent=`Pregunta ${idx+1} de ${round.length}`;
+  $("barFill").style.width=(idx/round.length*100)+"%"; hud();
+  $("qType").textContent=TYPES[q.type]; $("fb").hidden=true; $("nextBtn").hidden=true; $("checkBtn").hidden=true;
+  const B=$("qBody");
+  if(q.type==="draw"){
+    B.innerHTML=`<div class="prompt">Quina fracció està pintada?</div><div class="stage frac-stage">${drawFrac(q.n,q.d,q.kind,q.fill)}</div>
+      <div class="answer-frac"><div class="frac-in">${numIn("n1","numerador")}<i></i>${numIn("d1","denominador")}</div></div>`;
+    $("checkBtn").hidden=false; setTimeout(()=>$("n1").focus(),30);
+  } else if(q.type==="choose"){
+    B.innerHTML=`<div class="prompt">Quina fracció representa el dibuix?</div><div class="stage frac-stage">${drawFrac(q.n,q.d,q.kind,q.fill)}</div>
+      <div class="opts four">${q.opts.map((o,i)=>{ const [a,b]=o.split("/"); return `<button type="button" data-i="${i}" aria-label="${a} de ${b}">${fr(a,b)}</button>`; }).join("")}</div>`;
+    B.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>gradeChoose(b));
+  } else if(q.type==="pickdraw"){
+    B.innerHTML=`<div class="prompt">Quin dibuix representa ${fr(q.n,q.d)} ?</div>
+      <div class="pick3">${q.opts.map((o,i)=>`<button type="button" data-i="${i}" aria-label="Dibuix ${i+1}">${drawFrac(o.a,o.b,q.kind,o.fill,150)}</button>`).join("")}</div>`;
+    B.querySelectorAll(".pick3 button").forEach(b=>b.onclick=()=>gradePickDraw(b));
+  } else if(q.type==="paint"||q.type==="painteq"){
+    const head = q.type==="paint" ? `Pinta ${fr(q.n,q.d)} del dibuix.` : `Pinta una fracció equivalent a ${fr(q.a,q.b)}. El dibuix té ${q.d} parts.`;
+    B.innerHTML=`<div class="prompt">${head}</div><p class="small muted" style="margin:0">Toca les parts per pintar-les. Torna-les a tocar per esborrar-les.</p>
+      <div class="stage frac-stage">${drawPaint(q.d,q.kind)}</div><div class="small muted" id="paintCount" style="text-align:center"></div>`;
+    bindPaint(); $("checkBtn").hidden=false;
+  } else if(q.type==="read"){
+    B.innerHTML=`<div class="prompt">Com es llegeix aquesta fracció?</div><div class="stage frac-stage">${fr(q.n,q.d).replace('class="frac"','class="frac huge"')}</div>
+      <div class="opts one">${q.opts.map((o,i)=>`<button type="button" data-i="${i}">${o}</button>`).join("")}</div>`;
+    B.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>gradeRead(b));
+  } else if(q.type==="parts"){
+    B.innerHTML=`<div class="prompt">En aquesta fracció, quin número és el <b>${q.ask==="num"?"numerador":"denominador"}</b>?</div>
+      <div class="stage frac-stage">${fr(q.n,q.d).replace('class="frac"','class="frac huge"')}</div>
+      <div class="opts">${shuffle([q.n,q.d]).map(v=>`<button type="button" data-v="${v}">${v}</button>`).join("")}</div>`;
+    B.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>gradeParts(b));
+  } else if(q.type==="same"){
+    B.innerHTML=`<div class="prompt">Aquestes dues fraccions són equivalents?</div>
+      <div class="stage frac-stage"><div class="row" style="justify-content:center;gap:18px">${fr(q.a,q.b).replace('class="frac"','class="frac huge"')}<b class="eq big">¿=?</b>${fr(q.c,q.d).replace('class="frac"','class="frac huge"')}</div></div>
+      <div class="opts"><button type="button" data-v="1">Sí, són equivalents</button><button type="button" data-v="0">No ho són</button></div>`;
+    B.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>gradeSame(b));
+  } else {
+    const L= q.flip ? [q.big,[q.a,q.b]] : [[q.a,q.b],q.big];
+    const missSide= q.flip ? 0 : 1;
+    const side=(f,i)=> i===missSide ? `<div class="frac-in">${q.miss==="num"?numIn("x","número que falta"):`<span class="fixed">${f[0]}</span>`}<i></i>${q.miss==="den"?numIn("x","número que falta"):`<span class="fixed">${f[1]}</span>`}</div>` : fr(f[0],f[1]).replace('class="frac"','class="frac huge"');
+    B.innerHTML=`<div class="prompt">Escriu el número que falta perquè siguin equivalents.</div>
+      <div class="stage frac-stage"><div class="row" style="justify-content:center;gap:18px;align-items:center">${side(L[0],0)}<b class="eq big">=</b>${side(L[1],1)}</div></div>`;
+    $("checkBtn").hidden=false; setTimeout(()=>$("x").focus(),30);
+  }
+}
+$("qForm").addEventListener("submit",e=>{ e.preventDefault(); if(answered){ next(); return; } const q=round[idx]; if(q.type==="draw") gradeDraw(); else if(q.type==="fill") gradeFill(); else if(q.type==="paint"||q.type==="painteq") gradePaint(); });
+$("qBody").addEventListener("keydown",e=>{ if(e.key==="Enter" && e.target.id==="n1"){ e.preventDefault(); $("d1").focus(); } });
+$("nextBtn").onclick=next;
+function next(){ idx++; if(idx>=round.length) finish(); else renderQ(); }
+const int=v=>{ const t=String(v||"").trim(); return /^\d+$/.test(t)?+t:null; };
+
+function feedback(ok,okText,why,extra){
+  const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
+  fb.innerHTML=(ok? `${pick(["Molt bé!","Perfecte!","Genial!","Ets un crac!","Correcte!"])}${streak>=3?` ${streak} seguits!`:""}<small>${okText}</small>` : `Ups! No és correcte.<small>${why}</small>`)+(extra||"");
+  $("checkBtn").hidden=true; $("nextBtn").hidden=false; $("nextBtn").textContent= idx===round.length-1? "Mira el resultat":"Següent";
+  setTimeout(()=>$("nextBtn").focus(),20); hud();
+}
+function record(r){ streak= r.ok? streak+1 : 0; results.push({group:GROUP[r.type],...r}); beep(r.ok); }
+const bars=(a,b,c,d)=>`<div class="bars"><div>${drawFrac(a,b,"bar","--f2",120)}<span>${ft(a,b)}</span></div><div>${drawFrac(c,d,"bar","--f4",120)}<span>${ft(c,d)}</span></div></div>`;
+
+function gradeDraw(){
+  const q=round[idx], n=int($("n1").value), d=int($("d1").value);
+  if(n===null||d===null){ const fb=$("fb"); fb.hidden=false; fb.className="fb ko"; fb.innerHTML="Falta un número.<small>Escriu el numerador a dalt i el denominador a baix.</small>"; return; }
+  answered=true; const ok= n===q.n && d===q.d;
+  $("n1").classList.add(n===q.n?"ok":"ko"); $("d1").classList.add(d===q.d?"ok":"ko"); $("n1").readOnly=$("d1").readOnly=true;
+  let why="";
+  if(!ok){
+    if(n===q.d && d===q.n) why=`Has girat la fracció. A dalt (numerador) van les parts pintades, ${q.n}; a baix (denominador), les parts totals, ${q.d}.`;
+    else if(n===q.d-q.n && d===q.d) why=`Has comptat les parts sense pintar. Les pintades són ${q.n} de ${q.d}: ${ft(q.n,q.d)}.`;
+    else if(n===q.n && d===q.d-q.n) why=`El denominador són totes les parts, també les pintades: ${q.d}. La fracció és ${ft(q.n,q.d)}.`;
+    else if(n===q.n) why=`El numerador està bé. Compta totes les parts iguals: són ${q.d}. La fracció és ${ft(q.n,q.d)}.`;
+    else if(d===q.d) why=`El denominador està bé. Compta les parts pintades: són ${q.n}. La fracció és ${ft(q.n,q.d)}.`;
+    else why=`Hi ha ${q.n} parts pintades de ${q.d} en total: ${ft(q.n,q.d)} (${fname(q.n,q.d)}).`;
+  }
+  record({ok,type:"draw",asked:`Dibuix amb ${q.n} de ${q.d} parts pintades`,yours:ft(n,d),right:ft(q.n,q.d),why});
+  feedback(ok,`${ft(q.n,q.d)}: ${fname(q.n,q.d)}.`,why);
+}
+function gradeChoose(el){
+  if(answered) return; answered=true; const q=round[idx], v=q.opts[+el.dataset.i], right=ft(q.n,q.d), ok= v===right;
+  $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const t=q.opts[+b.dataset.i]; if(t===right) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+  const [a,b]=v.split("/").map(Number); let why="";
+  if(!ok){
+    if(a===q.d && b===q.n) why=`Està girada. A dalt van les parts pintades (${q.n}) i a baix les parts totals (${q.d}): ${right}.`;
+    else if(a===q.d-q.n && b===q.d) why=`Aquesta és la part sense pintar. Pintades n'hi ha ${q.n} de ${q.d}: ${right}.`;
+    else if(a===q.n) why=`El dibuix està dividit en ${q.d} parts iguals, no en ${b}: ${right}.`;
+    else why=`Hi ha ${q.n} parts pintades de ${q.d}: ${right}.`;
+  }
+  record({ok,type:"choose",asked:`Dibuix amb ${q.n} de ${q.d} parts pintades`,yours:v,right,why});
+  feedback(ok,`${right}: ${fname(q.n,q.d)}.`,why);
+}
+function gradePickDraw(el){
+  if(answered) return; answered=true; const q=round[idx], o=q.opts[+el.dataset.i], ok= o.a===q.n && o.b===q.d;
+  $("qBody").querySelectorAll(".pick3 button").forEach(b=>{ b.disabled=true; const x=q.opts[+b.dataset.i]; if(x.a===q.n&&x.b===q.d) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+  const why= ok? "" : `Aquest dibuix té ${o.a} parts pintades de ${o.b} (${ft(o.a,o.b)}). ${ft(q.n,q.d)} vol dir ${q.n} parts pintades de ${q.d} parts iguals.`;
+  record({ok,type:"pickdraw",asked:`Quin dibuix és ${ft(q.n,q.d)}?`,yours:`Dibuix de ${ft(o.a,o.b)}`,right:`Dibuix de ${ft(q.n,q.d)}`,why});
+  feedback(ok,`${ft(q.n,q.d)}: ${q.n} parts pintades de ${q.d}.`,why);
+}
+function gradePaint(){
+  const q=round[idx], got=$("qBody").querySelectorAll(".paintable.on").length;
+  if(!got){ const fb=$("fb"); fb.hidden=false; fb.className="fb ko"; fb.innerHTML="No has pintat res.<small>Toca les parts del dibuix per pintar-les.</small>"; return; }
+  answered=true; const ok= got===q.n;
+  $("qBody").querySelector(".paint-svg").classList.add(ok?"good":"bad");
+  let why="";
+  if(!ok){
+    if(q.type==="paint") why= got===q.d-q.n ? `Has pintat les que havien de quedar en blanc. ${ft(q.n,q.d)} vol dir pintar ${q.n} parts de ${q.d}.` : `Havies de pintar ${q.n} parts de ${q.d} (el numerador diu quantes es pinten). N'has pintat ${got}.`;
+    else why= got===q.a ? `Has pintat ${q.a} parts, però el dibuix té ${q.d} parts, no ${q.b}. Com que ${q.b} × ${q.k} = ${q.d}, cal pintar ${q.a} × ${q.k} = ${q.n} parts.` : `El dibuix té ${q.d} parts: ${q.b} × ${q.k} = ${q.d}. Per tant cal pintar ${q.a} × ${q.k} = ${q.n} parts (${ft(q.n,q.d)} = ${ft(q.a,q.b)}). N'has pintat ${got}.`;
+  }
+  record({ok,type:q.type,asked:q.type==="paint"?`Pinta ${ft(q.n,q.d)}`:`Pinta l'equivalent a ${ft(q.a,q.b)} en ${q.d} parts`,yours:`${got} parts pintades`,right:`${q.n} parts pintades`,why});
+  feedback(ok, q.type==="paint" ? `${q.n} parts pintades de ${q.d}: ${ft(q.n,q.d)}.` : `${ft(q.n,q.d)} = ${ft(q.a,q.b)}: s'ha multiplicat a dalt i a baix per ${q.k}.`, why, q.type==="painteq"?bars(q.a,q.b,q.n,q.d):"");
+}
+function gradeRead(el){
+  if(answered) return; answered=true; const q=round[idx], v=q.opts[+el.dataset.i], ok= v===q.right;
+  $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const t=q.opts[+b.dataset.i]; if(t===q.right) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+  const why= ok? "" : `El numerador ${q.n} es llegeix «${NUMW[q.n]}» i el denominador ${q.d} es llegeix «${q.n===1?DEN[q.d][0]:DEN[q.d][1]}»: ${q.right}.`;
+  record({ok,type:"read",asked:`Com es llegeix ${ft(q.n,q.d)}?`,yours:v,right:q.right,why});
+  feedback(ok,`${ft(q.n,q.d)} es llegeix «${q.right}».`,why);
+}
+function gradeParts(el){
+  if(answered) return; answered=true; const q=round[idx], v=+el.dataset.v, want= q.ask==="num"?q.n:q.d, ok= v===want;
+  $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; if(+b.dataset.v===want) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+  const why= ok? "" : `El numerador és el número de dalt (${q.n}) i el denominador el de baix (${q.d}).`;
+  record({ok,type:"parts",asked:`Quin és el ${q.ask==="num"?"numerador":"denominador"} de ${ft(q.n,q.d)}?`,yours:String(v),right:String(want),why});
+  feedback(ok,`El ${q.ask==="num"?"numerador (a dalt)":"denominador (a baix)"} és ${want}.`,why);
+}
+function gradeSame(el){
+  if(answered) return; answered=true; const q=round[idx], v=el.dataset.v==="1", ok= v===q.yes;
+  $("qBody").querySelectorAll(".opts button").forEach(b=>{ b.disabled=true; const bv=b.dataset.v==="1"; if(bv===q.yes) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+  const [s1,s2]= q.a<q.c ? [[q.a,q.b],[q.c,q.d]] : [[q.c,q.d],[q.a,q.b]];
+  let why;
+  if(q.yes){ const k=s2[0]/s1[0]; why=`Sí que són equivalents: ${ft(s1[0],s1[1])} multiplicant a dalt i a baix per ${k} dona ${ft(s1[0]*k,s1[1]*k)}.`; }
+  else if(q.trick==="add") why=`No són equivalents. Sumar el mateix número a dalt i a baix no dona una fracció equivalent: s'ha de multiplicar o dividir.`;
+  else if(q.trick==="top") why=`No són equivalents. Només s'ha multiplicat el numerador; per fer una equivalent cal multiplicar també el denominador pel mateix número.`;
+  else if(q.trick==="bottom") why=`No són equivalents. Només s'ha multiplicat el denominador; cal multiplicar també el numerador pel mateix número.`;
+  else why=`No són equivalents: ${ft(q.base[0],q.base[1])} multiplicada per ${q.k} seria ${ft(q.base[0]*q.k,q.base[1]*q.k)}, no la que surt aquí.`;
+  record({ok,type:"same",asked:`${ft(q.a,q.b)} i ${ft(q.c,q.d)} són equivalents?`,yours:v?"Sí":"No",right:q.yes?"Sí":"No",why:ok?"":why});
+  feedback(ok,why,why,bars(q.a,q.b,q.c,q.d));
+}
+function gradeFill(){
+  const q=round[idx], x=int($("x").value);
+  if(x===null){ const fb=$("fb"); fb.hidden=false; fb.className="fb ko"; fb.innerHTML="Escriu un número.<small>Pensa per quin número s'ha multiplicat l'altra part.</small>"; return; }
+  answered=true;
+  const want= q.miss==="num" ? (q.flip?q.a:q.big[0]) : (q.flip?q.b:q.big[1]);
+  const ok= x===want; $("x").classList.add(ok?"ok":"ko"); $("x").readOnly=true;
+  const small=[q.a,q.b], big=q.big;
+  const asked= q.flip ? `${q.miss==="num"?"?":big[0]}/${q.miss==="den"?"?":big[1]} = ${small[0]}/${small[1]}`.replace(/^(\d+|\?)\/(\d+|\?) = /,(m,a,b)=>`${big[0]}/${big[1]} = `)+"" : `${small[0]}/${small[1]} = ${q.miss==="num"?"?":big[0]}/${q.miss==="den"?"?":big[1]}`;
+  const askedTxt = q.flip ? `${small[0]}/${small[1]} amb ${q.miss==="num"?"numerador":"denominador"} desconegut, equivalent a ${big[0]}/${big[1]}` : asked;
+  let why="";
+  if(!ok){
+    if(q.flip) why=`Aquí cal dividir: ${big[0]}/${big[1]}, dividint a dalt i a baix per ${q.k}, dona ${small[0]}/${small[1]}. El número que falta és ${want}.`;
+    else {
+      const other= q.miss==="num" ? `${small[1]} × ${q.k} = ${big[1]}` : `${small[0]} × ${q.k} = ${big[0]}`;
+      const added= q.miss==="num" ? small[0]+(big[1]-small[1]) : small[1]+(big[0]-small[0]);
+      why = x===added ? `No se suma: es multiplica. Com que ${other}, s'ha de multiplicar l'altre número també per ${q.k}: el que falta és ${want}.`
+                      : `Com que ${other}, l'altre número també es multiplica per ${q.k}: ${q.miss==="num"?small[0]:small[1]} × ${q.k} = ${want}.`;
+    }
+  }
+  record({ok,type:"fill",asked:q.flip?`${big[0]}/${big[1]} = ${q.miss==="num"?"?":small[0]}/${q.miss==="den"?"?":small[1]}`:asked,yours:String(x),right:String(want),why});
+  feedback(ok,`${ft(small[0],small[1])} = ${ft(big[0],big[1])}: s'ha multiplicat a dalt i a baix per ${q.k}.`,why,bars(small[0],small[1],big[0],big[1]));
+}
+
+// ---------- results ----------
+const STAR=f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;
+function finish(){
+  $("quiz").hidden=true; $("results").hidden=false;
+  const ok=results.filter(r=>r.ok), ko=results.filter(r=>!r.ok), pct=Math.round(ok.length/results.length*100);
+  const stars=pct>=95?3:pct>=75?2:pct>=50?1:0;
+  $("resTitle").textContent= pct===100?"Perfecte! Domines les fraccions.":pct>=75?"Molt bé! Gairebé ho tens.":pct>=50?"Bona feina, però cal repassar.":"Cal practicar una mica més.";
+  $("resNum").textContent=`${ok.length}/${results.length}`;
+  $("resStars").innerHTML=[0,1,2].map(i=>STAR(i<stars)).join("");
+  $("resOk").textContent=`${ok.length} encerts`; $("resKo").textContent=`${ko.length} errors`;
+  const types=[...new Set(results.map(r=>r.type))];
+  $("byCat").innerHTML=types.map(t=>{ const r=results.filter(x=>x.type===t); return `<div>${r.filter(x=>x.ok).length}/${r.length}<span>${TYPES[t]}</span></div>`; }).join("");
+  $("missBlock").hidden=!ko.length; $("missList").innerHTML="";
+  ko.forEach(r=>{ const a=document.createElement("article");
+    a.innerHTML=`<span class="tag" style="color:var(--muted)">${TYPES[r.type]}</span><span class="q"></span><span>Has respost: <span class="yours"></span></span><span>Correcte: <span class="right"></span></span><span class="small"></span>`;
+    a.querySelector(".q").textContent=r.asked; a.querySelector(".yours").textContent=r.yours; a.querySelector(".right").textContent=r.right; a.querySelector(".small").textContent="Motiu: "+r.why;
+    $("missList").append(a); });
+  buildReport(); saveReport();
+  if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ---------- report: saved and downloaded automatically ----------
+const KEY="reports-informe-fraccions";
+const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+const dlMsg=t=>{ $("dlMsg").textContent=t; };
+function buildReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="LES FRACCIONS - INFORME";
+  const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),"",
+    `Resultat: ${ok} de ${n} encerts (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
+    `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,"","ENCERTS PER TIPUS","-----------------"];
+  [...new Set(results.map(r=>r.type))].forEach(t=>{ const r=results.filter(x=>x.type===t); L.push(`${TYPES[t]}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  L.push("","PREGUNTES I RESPOSTES","---------------------");
+  results.forEach((r,i)=>{ L.push(`${i+1}. [${TYPES[r.type]}] ${r.asked}`,`   Ha respost: ${r.yours}`,`   Correcte: ${r.right}`,`   Resultat: ${r.ok?"ENCERT":"ERROR"}`);
+    if(!r.ok) L.push(`   Motiu: ${r.why}`); L.push(""); });
+  L.push("RECORDA","-------","Numerador (a dalt): parts que agafem. Denominador (a baix): parts iguals en què dividim la unitat.","Fraccions equivalents: es multiplica o es divideix el numerador i el denominador pel mateix número (1/2 = 2/4 = 4/8).");
+  $("reportText").value=L.join("\n");
+}
+function saveFile(name,text){
+  const url=URL.createObjectURL(new Blob(["﻿"+String(text).replace(/\r?\n/g,"\r\n")],{type:"text/plain;charset=utf-8"}));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
+function saveReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, file=`informe-fraccions_${stamp()}.txt`;
+  const data={id:String(Date.now()),game:"Les Fraccions",at:new Date().toISOString(),correct:ok,total:n,pct:Math.round(ok/n*100),
+    grade:(ok/n*10).toFixed(1).replace(".",","),valuation:$("resTitle").textContent,file,text:$("reportText").value};
+  try{ const list=loadLocal(); list.unshift(data); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
+  renderReports();
+  try{ saveFile(file,data.text); dlMsg("Informe desat a «Informes desats» i descarregat automàticament a la carpeta de Baixades."); }
+  catch(e){ dlMsg("L'informe s'ha desat a «Informes desats». Si no s'ha descarregat, fes servir «Descarrega l'informe»."); }
+}
+$("dlBtn").onclick=()=>saveFile(`informe-fraccions_${stamp()}.txt`,$("reportText").value);
+$("copyBtn").onclick=()=>{
+  const t=$("reportText");
+  const fallback=()=>{ t.closest("details").open=true; t.focus(); t.select(); dlMsg("Text seleccionat: prem Ctrl+C per copiar-lo."); };
+  try{ navigator.clipboard.writeText(t.value).then(()=>dlMsg("Informe copiat."),fallback); }catch(e){ fallback(); }
+};
+function renderReports(){
+  const L=$("repList"), list=loadLocal();
+  if(!list.length){ L.innerHTML='<span class="muted">Encara no hi ha informes. Quan acabis una prova, apareixerà aquí.</span>'; return; }
+  L.innerHTML="";
+  list.forEach(r=>{
+    const row=document.createElement("div"); row.className="rep-row";
+    const info=document.createElement("div"); info.className="info";
+    info.textContent=`${new Date(r.at).toLocaleString("ca-ES",{dateStyle:"short",timeStyle:"short"})} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    const btns=document.createElement("div"); btns.className="row";
+    const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Descarrega"; b1.onclick=()=>saveFile(r.file||"informe.txt",String(r.text||""));
+    const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copia";
+    b2.onclick=()=>{ try{ navigator.clipboard.writeText(String(r.text||"")).then(()=>{$("repMsg").textContent="Informe copiat.";},()=>{$("repMsg").textContent="No s'ha pogut copiar.";}); }catch(e){} };
+    btns.append(b1,b2); row.append(info,btns); L.append(row);
+  });
+}
+renderReports(); $("reports").hidden=false;
+
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const cols=["#ffc531","#0f8a68","#2f5bea","#c7362f","#9b4fd1"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:5+Math.random()*6,c:pick(cols)}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(++t<220)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+}
+</script>
+</body>
+</html>
