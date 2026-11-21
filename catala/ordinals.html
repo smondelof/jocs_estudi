@@ -112,7 +112,12 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
     </div>
     <p style="margin:0">A partir del 5 s'afegeix <b>-è</b>. Amb vint, s'uneix amb <b>-i-</b>: vint-i-dosè.</p>
     <p class="muted small" style="margin:0">20 números: de l'1 al 29 i les desenes fins al 100. Cada partida té números nous. Al final veuràs els encerts, els errors i el motiu.</p>
-    <div class="row"><button type="button" id="startBtn">Comencem!</button></div>
+    <div class="tag">Tria l'exercici</div>
+    <div class="row">
+      <button type="button" data-omode="num">1 · Número en xifres (7)</button>
+      <button type="button" class="ghost" data-omode="abbr">2 · Abreviatura (7è o 7a)</button>
+    </div>
+    <p class="small muted" style="margin:0">A l'exercici 2, fixa't en la lletra: <b>1r, 2n, 3r, 4t, 7è</b> és masculí (setè) i <b>7a</b> és femení (setena).</p>
   </section>
 
   <section class="card" id="quiz" hidden>
@@ -357,7 +362,7 @@ function buildRound(){
   // 20 different numbers, with every type present
   const want=[[1,3],[2,6],[4,5],[3,6]], used=new Set(), list=[];
   const pool=d=>NUMBERS.filter(n=>groupOf(n)===d && !used.has(n));
-  want.forEach(([d,c])=>{ shuffle(pool(d)).slice(0,c).forEach(n=>{ used.add(n); list.push({n,d,g:"m"}); }); });
+  want.forEach(([d,c])=>{ shuffle(pool(d)).slice(0,c).forEach(n=>{ used.add(n); list.push({n,d,g: omode==="abbr" ? (Math.random()<.5?"m":"f") : "m"}); }); });
   return shuffle(list);
 }
 function partsOf(n){ return [[caNumber(n),"en cardinal"]]; }
@@ -374,7 +379,9 @@ function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||
 
 // ---------- game ----------
 let round=[], idx=0, results=[], streak=0, answered=false, usedHelp=false;
-$("startBtn").onclick=startRound; $("againBtn").onclick=startRound;
+let omode="num";
+document.querySelectorAll("[data-omode]").forEach(b=>b.onclick=()=>{ omode=b.dataset.omode; startRound(); });
+$("againBtn").onclick=startRound;
 $("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; };
 function startRound(){
   round=buildRound(); idx=0; results=[]; streak=0;
@@ -385,7 +392,8 @@ function renderQ(){
   $("qCount").textContent=`Pregunta ${idx+1} de ${round.length}`;
   $("barFill").style.width=(idx/round.length*100)+"%";
   $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`;
-  $("bigNum").textContent=q.n; $("grp").textContent="";
+  if(omode==="abbr") $("bigNum").innerHTML=`${q.n}<span class="sfx">${sfx(q.n,q.g)}</span>`; else $("bigNum").textContent=q.n;
+  $("grp").textContent= omode==="abbr" ? "Abreviatura" : "";
   const a=$("ans"); a.value=""; a.className="answer"; a.readOnly=false;
   $("parts").hidden=true; $("fb").hidden=true;
   $("checkBtn").hidden=false; $("helpBtn").hidden=false; $("nextBtn").hidden=true;
@@ -393,7 +401,7 @@ function renderQ(){
 }
 $("helpBtn").onclick=()=>{
   const q=round[idx]; usedHelp=true;
-  $("parts").innerHTML=`<span>${caNumber(q.n)}<small>així es diu el ${q.n}; ara escriu-ne l'ordinal</small></span>`;
+  $("parts").innerHTML=(omode==="abbr"?`<span>${q.g==="f"?"Femení":"Masculí"}<small>acaba en «${sfx(q.n,q.g)}»</small></span>`:"")+`<span>${caNumber(q.n)}<small>així es diu el ${q.n}; ara escriu-ne l'ordinal</small></span>`;
   $("parts").hidden=false; $("ans").focus();
 };
 $("ans").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(answered) next(); else grade(); } });
@@ -401,11 +409,11 @@ $("qForm").addEventListener("submit",e=>{ e.preventDefault(); if(answered) next(
 $("nextBtn").onclick=next;
 function grade(){
   if(answered) return;
-  const q=round[idx], a=$("ans"), val=a.value, ok=gCheck(val,q.n,"m")||gCheck(val,q.n,"f");
+  const q=round[idx], a=$("ans"), val=a.value, ok= omode==="abbr" ? gCheck(val,q.n,q.g) : (gCheck(val,q.n,"m")||gCheck(val,q.n,"f"));
   a.classList.add(ok?"ok":"ko"); a.readOnly=true; answered=true; streak= ok? streak+1 : 0;
-  const right=ordinal(q.n), why= ok? "" : ordReason(toMasc(gCanon(val)),q.n);
-  const note = ok && gCheck(val,q.n,"f") ? `És correcte en femení. En masculí és «${right}».` : ok && ordTidy(val)!==right ? `També és correcte. La forma general és «${right}».` : "";
-  results.push({ok,n:q.n,d:q.d,g:q.g,ab:String(q.n),yours:val.trim()||"(buit)",right,why,note,help:usedHelp});
+  const right= omode==="abbr" ? expected(q.n,q.g) : ordinal(q.n), why= ok? "" : omode==="abbr" ? gReason(val,q.n,q.g) : ordReason(toMasc(gCanon(val)),q.n);
+  const note = omode!=="abbr" && ok && gCheck(val,q.n,"f") ? `És correcte en femení. En masculí és «${right}».` : ok && ordTidy(val)!==right ? `També és correcte. La forma general és «${right}».` : "";
+  results.push({ok,n:q.n,d:q.d,g:q.g,ab: omode==="abbr" ? `${q.n}${sfx(q.n,q.g)}` : String(q.n),yours:val.trim()||"(buit)",right,why,note,help:usedHelp});
   beep(ok);
   const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
   fb.innerHTML = ok ? `${pick(["Molt bé!","Perfecte!","Genial!","Ets un crac!","Correcte!"])}${streak>=3?` ${streak} seguits!`:""}<small>${right}${note?"<br>"+note:""}</small>`
@@ -445,13 +453,14 @@ function buildReport(){
   const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="ELS ORDINALS - INFORME";
   const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),"",
     `Resultat: ${ok} de ${n} encerts (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
-    `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,
+    `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,`Exercici: ${omode==="abbr"?"2 · Abreviatura (masculí i femení)":"1 · Número en xifres"}`,
     `Ajuda utilitzada en ${results.filter(r=>r.help).length} números`,"","ENCERTS PER TIPUS","-----------------"];
   GROUPS.forEach(g=>{ const r=results.filter(x=>x.d===g.d); if(r.length) L.push(`${g.name}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  if(omode==="abbr") ["m","f"].forEach(g=>{ const r=results.filter(x=>x.g===g); if(r.length) L.push(`${g==="f"?"Femenins":"Masculins"}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
   L.push("","PREGUNTES I RESPOSTES","---------------------");
-  results.forEach((r,i)=>{ L.push(`${i+1}. ${r.n}${r.help?" (amb ajuda)":""}`,`   Ha escrit: ${r.yours}`,`   Correcte: ${r.right}`,`   Resultat: ${r.ok?"ENCERT":"ERROR"}`);
+  results.forEach((r,i)=>{ L.push(`${i+1}. ${r.ab}${omode==="abbr"?(r.g==="f"?" (femení)":" (masculí)"):""}${r.help?" (amb ajuda)":""}`,`   Ha escrit: ${r.yours}`,`   Correcte: ${r.right}`,`   Resultat: ${r.ok?"ENCERT":"ERROR"}`);
     if(!r.ok) L.push(`   Motiu: ${r.why}`); else if(r.note) L.push(`   Nota: ${r.note}`); L.push(""); });
-  L.push("RECORDA","-------","1 primer, 2 segon, 3 tercer, 4 quart. A partir del 5 s'afegeix -è: cinquè, sisè, novè, desè.","21 vint-i-unè, 24 vint-i-quatrè, 29 vint-i-novè. Desenes: vintè, trentè, quarantè… centè.");
+  L.push("RECORDA","-------","1 primer, 2 segon, 3 tercer, 4 quart. A partir del 5 s'afegeix -è: cinquè, sisè, novè, desè.","21 vint-i-unè, 24 vint-i-quatrè, 29 vint-i-novè. Desenes: vintè, trentè, quarantè… centè.","Abreviatures: 1r, 2n, 3r, 4t, 5è… són masculines. 1a, 5a… són femenines: primera, cinquena, vint-i-unena.");
   $("reportText").value=L.join("\n");
 }
 function saveFile(name,text){
