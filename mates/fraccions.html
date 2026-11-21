@@ -127,7 +127,7 @@ svg .part{stroke:var(--stroke);stroke-width:2.5;stroke-linejoin:round}
 svg .paintable{fill:var(--paper);cursor:pointer}
 svg .paintable.on{fill:var(--accent)}
 svg .paintable:focus-visible{outline:none;stroke:var(--sun);stroke-width:5}
-.paint-svg.good .paintable.on{fill:var(--good)} .paint-svg.bad{outline:3px solid var(--bad);outline-offset:4px;border-radius:6px}
+.paint-svg.good .paintable.on:not(.obj){fill:var(--good)} .paint-svg.bad{outline:3px solid var(--bad);outline-offset:4px;border-radius:6px}
 .answer-frac{display:flex;justify-content:center}
 .frac-in{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
 .frac-in i{display:block;width:84px;height:4px;background:var(--ink);border-radius:2px}
@@ -141,6 +141,12 @@ svg .paintable:focus-visible{outline:none;stroke:var(--sun);stroke-width:5}
 .pick3 button{background:var(--bg);box-shadow:0 4px 0 var(--line);padding:10px;display:flex;align-items:center;justify-content:center;min-height:120px}
 .pick3 button svg{width:100%;height:auto;max-height:150px}
 .pick3 button.ok{background:var(--good-bg)!important;outline:3px solid var(--good)} .pick3 button.ko{background:var(--bad-bg)!important;outline:3px solid var(--bad)}
+.objects-svg{max-width:340px!important}
+svg .rowbox{fill:none;stroke:var(--line);stroke-width:2;stroke-dasharray:5 4}
+svg .obj{stroke:var(--stroke);stroke-width:2;fill:var(--paper)}
+svg .obj:focus{outline:none} svg .obj:focus-visible{outline:none;stroke:var(--sun);stroke-width:4}
+svg .obj.apple.on{fill:#e4483b} svg .obj.star.on{fill:#f2b300} svg .obj.heart.on{fill:#e84f8a} svg .obj.ball.on{fill:#3a7be0}
+.paint-svg.good .obj.on{stroke:var(--good);stroke-width:3}
 .bars{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
 .bars div{display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700}
 .bars svg{width:180px;height:auto}
@@ -167,6 +173,7 @@ svg .paintable:focus-visible{outline:none;stroke:var(--sun);stroke-width:5}
       <div class="col">
         <div class="row" style="justify-content:center;gap:8px"><div class="frac"><span>1</span><i></i><span>2</span></div><b class="eq">=</b><div class="frac"><span>2</span><i></i><span>4</span></div><b class="eq">=</b><div class="frac"><span>4</span><i></i><span>8</span></div></div>
         <p style="margin:0">Les fraccions <b>equivalents</b> representen la mateixa quantitat. Es fan multiplicant o dividint el numerador i el denominador <b>pel mateix número</b>.</p>
+        <p class="small muted" style="margin:0">3/4 de 8 pomes: 8 ÷ 4 = 2 a cada part, i 3 parts són 6 pomes.</p>
       </div>
     </div>
     <div>
@@ -280,14 +287,14 @@ function drawPaint(d,kind){
   return `<svg viewBox="0 0 ${W} ${S*0.45+8}" class="paint-svg">${out}</svg>`;
 }
 function bindPaint(){
-  const upd=()=>{ const n=$("qBody").querySelectorAll(".paintable.on").length; const c=$("paintCount"); if(c) c.textContent=`Parts pintades: ${n}`; };
+  const upd=()=>{ const n=$("qBody").querySelectorAll(".paintable.on").length; const c=$("paintCount"); if(c) c.textContent=`Pintades: ${n}`; };
   $("qBody").querySelectorAll(".paintable").forEach(p=>{ const t=()=>{ if(answered) return; p.classList.toggle("on"); p.setAttribute("aria-pressed",p.classList.contains("on")); upd(); };
     p.addEventListener("click",t); p.addEventListener("keydown",e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); t(); } }); });
   upd();
 }
 // ---------- question builders ----------
-const TYPES={draw:"Escriu la fracció",choose:"Tria la fracció",pickdraw:"Tria el dibuix",paint:"Pinta la fracció",read:"Com es llegeix?",parts:"Numerador i denominador",same:"Són equivalents?",fill:"Completa l'equivalent",painteq:"Pinta l'equivalent"};
-const GROUP={draw:"ord",choose:"ord",pickdraw:"ord",paint:"ord",read:"ord",parts:"ord",same:"eq",fill:"eq",painteq:"eq"};
+const TYPES={draw:"Escriu la fracció",choose:"Tria la fracció",pickdraw:"Tria el dibuix",paint:"Pinta la fracció",read:"Com es llegeix?",parts:"Numerador i denominador",same:"Són equivalents?",fill:"Completa l'equivalent",painteq:"Pinta l'equivalent",objects:"Pinta els objectes",pickeq:"Tria el dibuix equivalent"};
+const GROUP={draw:"ord",choose:"ord",pickdraw:"ord",paint:"ord",read:"ord",parts:"ord",same:"eq",fill:"eq",painteq:"eq",objects:"eq",pickeq:"eq"};
 function qDraw(){
   const d=ri(2,10), n=ri(1,d-1), kind= d%2===0 && d>=4 && Math.random()<.4 ? "grid" : d<=8 && Math.random()<.5 ? "pie" : "bar";
   return {type:"draw",n,d,kind,fill:pick(FILLS)};
@@ -307,6 +314,33 @@ function qPickDraw(){
 }
 function qPaint(){ const d=ri(3,10), n=ri(1,d-1); return {type:"paint",n,d,kind:kindFor(d)}; }
 function qPaintEq(){ const [a,b]=baseFrac(), k=ri(2,3); return {type:"painteq",a,b,k,n:a*k,d:b*k,kind:b*k<=8?pick(["bar","pie"]):"bar"}; }
+const OBJ={apple:["pomes","poma"],star:["estrelles","estrella"],heart:["cors","cor"],ball:["pilotes","pilota"]};
+function qObjects(){
+  let b,k; do{ b=ri(2,5); k=ri(2,4); }while(b*k>16 || b*k<6);
+  const a=ri(1,b-1); return {type:"objects",a,b,k,n:a*k,d:b*k,obj:pick(Object.keys(OBJ))};
+}
+function qPickEq(){
+  const [a,b]=baseFrac(), k=ri(2,3), right={a:a*k,b:b*k};
+  const cands=[{a:a*k+1,b:b*k},{a:a*k-1,b:b*k},{a:a+k,b:b+k},{a:a,b:b*k},{a:b*k-a*k,b:b*k},{a:a*k+2,b:b*k},{a:a*k,b:b*k+1},{a:a*k,b:b*k-1},{a:a+1,b:b+1}].filter(o=>o.a>0 && o.a<o.b && o.a*b!==a*o.b && o.b<=12);
+  const wrong=[]; shuffle(cands).forEach(o=>{ if(wrong.length<2 && !wrong.some(w=>w.a===o.a&&w.b===o.b)) wrong.push(o); });
+  return {type:"pickeq",a,b,k,kind:pick(["bar","pie"]),opts:shuffle([right,...wrong]).map(o=>({...o,fill:pick(FILLS)})),fill:pick(FILLS)};
+}
+function drawObjects(q){
+  // b rows of k objects: each row is one part of the fraction
+  const size=46, gap=10, rowGap=16, W=q.k*(size+gap)+gap, H=q.b*(size+rowGap)+rowGap-6;
+  const shape=(x,y)=>{ const c=x+size/2, m=y+size/2;
+    if(q.obj==="apple") return `<path d="M${c} ${y+12} C${c-26} ${y-2} ${c-24} ${y+size+4} ${c} ${y+size-4} C${c+24} ${y+size+4} ${c+26} ${y-2} ${c} ${y+12} Z"/><path d="M${c} ${y+12} L${c+2} ${y+2}" style="fill:none;stroke:#6b4a2b;stroke-width:3"/><path d="M${c+3} ${y+5} q8 -6 13 0 q-6 6 -13 0Z" style="fill:#3f9b4a;stroke:none"/>`;
+    if(q.obj==="star"){ let p=""; for(let i=0;i<10;i++){ const r=i%2?size*0.22:size*0.5, an=-Math.PI/2+i*Math.PI/5; p+=`${(c+r*Math.cos(an)).toFixed(1)},${(m+r*Math.sin(an)).toFixed(1)} `; } return `<polygon points="${p}"/>`; }
+    if(q.obj==="heart") return `<path d="M${c} ${y+size-6} C${c-30} ${y+22} ${c-16} ${y-2} ${c} ${y+12} C${c+16} ${y-2} ${c+30} ${y+22} ${c} ${y+size-6} Z"/>`;
+    return `<circle cx="${c}" cy="${m}" r="${size/2-3}"/><path d="M${c-size/2+3} ${m} H${c+size/2-3} M${c} ${m-size/2+3} V${m+size/2-3}" style="fill:none;stroke:var(--stroke);stroke-width:1.5;opacity:.5"/>`;
+  };
+  let out="", i=0;
+  for(let r=0;r<q.b;r++){
+    out+=`<rect x="2" y="${rowGap/2+r*(size+rowGap)-5}" width="${W-4}" height="${size+10}" rx="10" class="rowbox"/>`;
+    for(let c2=0;c2<q.k;c2++,i++) out+=`<g class="obj ${q.obj} paintable" data-p="${i}" tabindex="0" role="button" aria-label="${OBJ[q.obj][1]} ${i+1}" aria-pressed="false">${shape(gap+c2*(size+gap), rowGap/2+r*(size+rowGap))}</g>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" class="paint-svg objects-svg">${out}</svg>`;
+}
 function qRead(){
   const d=ri(2,10), n=ri(1,Math.min(9,d-1)||1), right=fname(n,d), opts=new Set([right]);
   const cands=[ n<=10 && d>=1 && DEN[n]? fname(d<=10?Math.min(d,10):d, n) : null, DEN[d+1]?fname(n,d+1):null, DEN[d-1]?fname(n,d-1):null, `${NUMW[n]} ${NUMW[d]}`, n+1<d?fname(n+1,d):null ].filter(Boolean);
@@ -340,7 +374,7 @@ function qFill(){
 function buildRound(mode){
   const qs=[];
   if(mode!=="eq"){ for(let i=0;i<3;i++) qs.push(qDraw()); for(let i=0;i<2;i++){ qs.push(qChoose()); qs.push(qPickDraw()); qs.push(qPaint()); qs.push(qRead()); } qs.push(qParts()); }
-  if(mode!=="ord"){ const s=[]; s.push({...qSame(),yes:true}); for(let i=0;i<2;i++) s.push(qSame()); for(let i=0;i<3;i++) s.push(qFill()); for(let i=0;i<2;i++) s.push(qPaintEq()); qs.push(...s); }
+  if(mode!=="ord"){ for(let i=0;i<3;i++) qs.push(qObjects()); for(let i=0;i<3;i++) qs.push(qPickEq()); for(let i=0;i<2;i++) qs.push(qPaintEq()); }
   // make sure "Són equivalents?" has at least one yes and one no
   const same=qs.filter(q=>q.type==="same");
   if(same.length && same.every(q=>q.yes)){ const i=qs.indexOf(same[0]); let q; do{ q=qSame(); }while(q.yes); qs[i]=q; }
@@ -395,6 +429,16 @@ function renderQ(){
     B.innerHTML=`<div class="prompt">Quin dibuix representa ${fr(q.n,q.d)} ?</div>
       <div class="pick3">${q.opts.map((o,i)=>`<button type="button" data-i="${i}" aria-label="Dibuix ${i+1}">${drawFrac(o.a,o.b,q.kind,o.fill,150)}</button>`).join("")}</div>`;
     B.querySelectorAll(".pick3 button").forEach(b=>b.onclick=()=>gradePickDraw(b));
+  } else if(q.type==="objects"){
+    B.innerHTML=`<div class="prompt">Pinta ${fr(q.a,q.b)} de les ${q.d} ${OBJ[q.obj][0]}.</div>
+      <p class="small muted" style="margin:0">Toca les ${OBJ[q.obj][0]} per pintar-les. Cada fila és una part de ${q.b}.</p>
+      <div class="stage frac-stage">${drawObjects(q)}</div><div class="small muted" id="paintCount" style="text-align:center"></div>`;
+    bindPaint(); $("checkBtn").hidden=false;
+  } else if(q.type==="pickeq"){
+    B.innerHTML=`<div class="prompt">Quin dibuix representa la mateixa quantitat que aquest?</div>
+      <div class="stage frac-stage">${drawFrac(q.a,q.b,q.kind,q.fill,170)}</div>
+      <div class="pick3">${q.opts.map((o,i)=>`<button type="button" data-i="${i}" aria-label="Dibuix ${i+1}">${drawFrac(o.a,o.b,q.kind,o.fill,150)}</button>`).join("")}</div>`;
+    B.querySelectorAll(".pick3 button").forEach(b=>b.onclick=()=>gradePickEq(b));
   } else if(q.type==="paint"||q.type==="painteq"){
     const head = q.type==="paint" ? `Pinta ${fr(q.n,q.d)} del dibuix.` : `Pinta una fracció equivalent a ${fr(q.a,q.b)}. El dibuix té ${q.d} parts.`;
     B.innerHTML=`<div class="prompt">${head}</div><p class="small muted" style="margin:0">Toca les parts per pintar-les. Torna-les a tocar per esborrar-les.</p>
@@ -423,7 +467,7 @@ function renderQ(){
     $("checkBtn").hidden=false; setTimeout(()=>$("x").focus(),30);
   }
 }
-$("qForm").addEventListener("submit",e=>{ e.preventDefault(); if(answered){ next(); return; } const q=round[idx]; if(q.type==="draw") gradeDraw(); else if(q.type==="fill") gradeFill(); else if(q.type==="paint"||q.type==="painteq") gradePaint(); });
+$("qForm").addEventListener("submit",e=>{ e.preventDefault(); if(answered){ next(); return; } const q=round[idx]; if(q.type==="draw") gradeDraw(); else if(q.type==="fill") gradeFill(); else if(q.type==="paint"||q.type==="painteq"||q.type==="objects") gradePaint(); });
 $("qBody").addEventListener("keydown",e=>{ if(e.key==="Enter" && e.target.id==="n1"){ e.preventDefault(); $("d1").focus(); } });
 $("nextBtn").onclick=next;
 function next(){ idx++; if(idx>=round.length) finish(); else renderQ(); }
@@ -481,12 +525,25 @@ function gradePaint(){
   answered=true; const ok= got===q.n;
   $("qBody").querySelector(".paint-svg").classList.add(ok?"good":"bad");
   let why="";
-  if(!ok){
+  if(!ok && q.type==="objects"){
+    why= got===q.a ? `Has pintat ${q.a}, però no són ${q.a} ${OBJ[q.obj][0]}: són ${q.a} parts de ${q.b}. ${q.d} ÷ ${q.b} = ${q.k} a cada part, i ${q.a} parts són ${q.a} × ${q.k} = ${q.n}.`
+       : got===q.d-q.n ? `Has pintat les que havien de quedar sense pintar. ${q.d} ÷ ${q.b} = ${q.k}; ${q.a} × ${q.k} = ${q.n}.`
+       : `${q.d} ${OBJ[q.obj][0]} en ${q.b} parts iguals són ${q.k} a cada part (${q.d} ÷ ${q.b} = ${q.k}). ${fr(q.a,q.b)} són ${q.a} parts: ${q.a} × ${q.k} = ${q.n}. N'has pintat ${got}.`;
+  }
+  else if(!ok){
     if(q.type==="paint") why= got===q.d-q.n ? `Has pintat les que havien de quedar en blanc. ${ft(q.n,q.d)} vol dir pintar ${q.n} parts de ${q.d}.` : `Havies de pintar ${q.n} parts de ${q.d} (el numerador diu quantes es pinten). N'has pintat ${got}.`;
     else why= got===q.a ? `Has pintat ${q.a} parts, però el dibuix té ${q.d} parts, no ${q.b}. Com que ${q.b} × ${q.k} = ${q.d}, cal pintar ${q.a} × ${q.k} = ${q.n} parts.` : `El dibuix té ${q.d} parts: ${q.b} × ${q.k} = ${q.d}. Per tant cal pintar ${q.a} × ${q.k} = ${q.n} parts (${ft(q.n,q.d)} = ${ft(q.a,q.b)}). N'has pintat ${got}.`;
   }
-  record({ok,type:q.type,asked:q.type==="paint"?`Pinta ${ft(q.n,q.d)}`:`Pinta l'equivalent a ${ft(q.a,q.b)} en ${q.d} parts`,yours:`${got} parts pintades`,right:`${q.n} parts pintades`,why});
-  feedback(ok, q.type==="paint" ? `${q.n} parts pintades de ${q.d}: ${ft(q.n,q.d)}.` : `${ft(q.n,q.d)} = ${ft(q.a,q.b)}: s'ha multiplicat a dalt i a baix per ${q.k}.`, why, q.type==="painteq"?bars(q.a,q.b,q.n,q.d):"");
+  record({ok,type:q.type,asked:q.type==="paint"?`Pinta ${ft(q.n,q.d)}`:q.type==="objects"?`Pinta ${ft(q.a,q.b)} de ${q.d} ${OBJ[q.obj][0]}`:`Pinta l'equivalent a ${ft(q.a,q.b)} en ${q.d} parts`,yours:`${got} parts pintades`,right:`${q.n} parts pintades`,why});
+  feedback(ok, q.type==="objects" ? `${ft(q.a,q.b)} de ${q.d} són ${q.n}: ${ft(q.a,q.b)} = ${ft(q.n,q.d)}.` : q.type==="paint" ? `${q.n} parts pintades de ${q.d}: ${ft(q.n,q.d)}.` : `${ft(q.n,q.d)} = ${ft(q.a,q.b)}: s'ha multiplicat a dalt i a baix per ${q.k}.`, why, q.type==="painteq"?bars(q.a,q.b,q.n,q.d):"");
+}
+function gradePickEq(el){
+  if(answered) return; answered=true; const q=round[idx], o=q.opts[+el.dataset.i], ok= o.a*q.b===q.a*o.b;
+  $("qBody").querySelectorAll(".pick3 button").forEach(b=>{ b.disabled=true; const x=q.opts[+b.dataset.i]; if(x.a*q.b===q.a*x.b) b.classList.add("ok"); else if(b===el) b.classList.add("ko"); });
+  const R={a:q.a*q.k,b:q.b*q.k};
+  const why= ok? "" : (o.a-q.a===o.b-q.b ? `Aquest dibuix és ${ft(o.a,o.b)}: s'ha sumat el mateix a dalt i a baix, i això no fa una fracció equivalent.` : `Aquest dibuix és ${ft(o.a,o.b)} i no ocupa la mateixa part. L'equivalent és ${ft(R.a,R.b)}: ${ft(q.a,q.b)} multiplicant a dalt i a baix per ${q.k}.`);
+  record({ok,type:"pickeq",asked:`Dibuix equivalent a ${ft(q.a,q.b)}`,yours:`Dibuix de ${ft(o.a,o.b)}`,right:`Dibuix de ${ft(R.a,R.b)}`,why});
+  feedback(ok,`${ft(q.a,q.b)} = ${ft(R.a,R.b)}: ocupen la mateixa part del dibuix.`,why,bars(q.a,q.b,R.a,R.b));
 }
 function gradeRead(el){
   if(answered) return; answered=true; const q=round[idx], v=q.opts[+el.dataset.i], ok= v===q.right;
