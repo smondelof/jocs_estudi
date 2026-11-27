@@ -107,6 +107,11 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
 .miss .em{font-size:2rem;line-height:1}
 @keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
 .pop{animation:pop .25s ease-out}
+.dict{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.dict div{background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+.dict b{font-size:2.4rem;line-height:1.1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-weight:400}
+.dict span{font-family:var(--display);font-weight:600;font-size:.95rem;line-height:1.2}
+.dict div.new{border-color:var(--sun);background:color-mix(in srgb, var(--sun) 18%, var(--paper))}
 @media (max-width:360px){ .choices{grid-template-columns:1fr} }
 </style>
 </head>
@@ -122,7 +127,7 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
   <section class="card" id="start">
     <h2>Com es diu en català?</h2>
     <p class="muted" style="margin:0">Veuràs un dibuix i has de triar el nom correcte en català d'entre quatre opcions. Fixa't també en l'article: <b>el</b>, <b>la</b>, <b>l'</b>, <b>els</b>, <b>les</b>.</p>
-    <p class="muted small" style="margin:0">Cada partida té 10 dibuixos i cada vegada surten paraules noves que encara no has vist. Al final veuràs els encerts, els errors i la paraula correcta.</p>
+    <p class="muted small" style="margin:0">Cada partida té 10 dibuixos i cada vegada surten paraules noves que encara no has vist. Al final veuràs els encerts, els errors i la paraula correcta. Els dibuixos que encertis es guarden al <b>Diccionari en imatges</b>.</p>
     <div class="row"><button type="button" id="goBtn">Comença (10 dibuixos)</button></div>
   </section>
 
@@ -161,6 +166,12 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
     </div>
   </section>
 
+  <section class="card" id="dict">
+    <h2>DICCIONARI EN IMATGES</h2>
+    <p class="muted small" style="margin:0" id="dictInfo"></p>
+    <div class="dict" id="dictGrid"></div>
+  </section>
+
   <section class="card" id="reports">
     <h2>Informes desats</h2>
     <p class="muted small" style="margin:0">Cada prova acabada es desa aquí automàticament perquè el mestre la pugui revisar. Els més nous primer.</p>
@@ -183,7 +194,15 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuffle=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
 const ALL=CATS.flatMap(c=>c.items.map(([e,w])=>({e,w,cat:c.id})));
-const ROUND=10, SEEN_KEY="vocab-imatges-vistes";
+const ROUND=10, SEEN_KEY="vocab-imatges-vistes", DICT_KEY="vocab-imatges-diccionari";
+// ---------- picture dictionary: every word guessed right is kept, in order of discovery ----------
+let DICT=[]; try{ DICT=JSON.parse(localStorage.getItem(DICT_KEY)||"[]").filter(w=>ALL.some(x=>x.w===w)); }catch(e){}
+let fresh=new Set();
+function addToDict(w){ if(DICT.includes(w)) return; DICT.push(w); fresh.add(w); try{ localStorage.setItem(DICT_KEY,JSON.stringify(DICT)); }catch(e){} }
+function renderDict(){
+  $("dictInfo").textContent= DICT.length ? `Tens ${DICT.length} de ${ALL.length} paraules. Cada dibuix que encertes s'hi guarda per sempre.${fresh.size?` Noves d'aquesta partida: ${fresh.size}.`:""}` : "Encara és buit. Cada dibuix que encertis es guardarà aquí per sempre.";
+  $("dictGrid").innerHTML=CATS.flatMap(c=>c.items.filter(([e,w])=>DICT.includes(w)).map(([e,w])=>`<div class="${fresh.has(w)?"new":""}"><b>${e}</b><span>${esc(w)}</span></div>`)).join("");
+}
 
 // ---------- sound ----------
 let sound=true; try{ if(localStorage.getItem("cat-sound")==="off") sound=false; }catch(e){}
@@ -212,9 +231,9 @@ function buildRound(){
 }
 $("goBtn").onclick=startRound;
 $("againBtn").onclick=startRound;
-$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; };
+$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; $("dict").hidden=false; };
 function startRound(){ round=buildRound(); idx=0; results=[]; streak=0;
-  ["start","results","reports"].forEach(i=>$(i).hidden=true); $("quiz").hidden=false; renderQ(); }
+  fresh=new Set(); ["start","results","reports","dict"].forEach(i=>$(i).hidden=true); $("quiz").hidden=false; renderQ(); }
 function renderQ(){
   const q=round[idx]; answered=false;
   $("qCount").textContent=`Dibuix ${idx+1} de ${round.length}`;
@@ -229,7 +248,7 @@ function answer(o,btn){
   const q=round[idx], ok=o===q.w; streak= ok? streak+1 : 0;
   [...$("choices").children].forEach(b=>{ b.disabled=true; if(b.textContent===q.w) b.classList.add("ok"); });
   if(!ok) btn.classList.add("ko");
-  results.push({e:q.e,cat:q.cat,yours:o,right:q.w,ok}); beep(ok);
+  results.push({e:q.e,cat:q.cat,yours:o,right:q.w,ok}); beep(ok); if(ok) addToDict(q.w);
   const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
   fb.innerHTML= ok ? `${pick(["Molt bé!","Perfecte!","Genial!","Correcte!","Ets un crac!"])}${streak>=3?` ${streak} seguits!`:""}<small>${esc(q.w)}</small>` : `Ups! No és «${esc(o)}».<small>És <b>${esc(q.w)}</b>.</small>`;
   $("nextBtn").hidden=false; $("nextBtn").textContent= idx===round.length-1? "Mira el resultat":"Següent"; setTimeout(()=>$("nextBtn").focus(),20);
@@ -252,6 +271,7 @@ function finish(){
   $("byCat").innerHTML=CATS.map(c=>{ const r=results.filter(x=>x.cat===c.id); if(!r.length) return ""; return `<div>${r.filter(x=>x.ok).length}/${r.length}<span>${c.name}</span></div>`; }).join("");
   $("missBlock").hidden=!ko.length;
   $("missList").innerHTML=ko.map(r=>`<article><span class="em">${r.e}</span><span>Has triat: <span class="yours">${esc(r.yours)}</span></span><span>Correcte: <span class="right">${esc(r.right)}</span></span></article>`).join("");
+  $("dict").hidden=false; renderDict();
   buildReport(); saveReport();
   if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -309,7 +329,7 @@ function confetti(){
   let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
     if(++t<220)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
 }
-renderReports();
+renderReports(); renderDict();
 </script>
 </body>
 </html>
