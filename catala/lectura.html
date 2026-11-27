@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Comprensió Lectora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: pick one of five readings; the text stays on top, then 5 comprehension questions (choose one) and a vocabulary block (translate to Spanish); everything is checked at once */
+:root{
+  --bg:#fff6e8; --paper:#ffffff; --ink:#2b1a12; --muted:#7a6155; --line:#f1dcc4;
+  --accent:#c7362f; --accent-ink:#ffffff; --sun:#ffc531; --good:#14905a; --good-bg:#dff5ea;
+  --bad:#d33c3c; --bad-bg:#fde6e6; --chip:#fbe8d2; --board:#21463a; --board-ink:#f4fbe9;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1d1410; --paper:#2a1d17; --ink:#fbeee4; --muted:#c9ab9b; --line:#46332a;
+  --accent:#ff7a70; --accent-ink:#2a0e0b; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#3b2a21; --board:#1a3a30; --board-ink:#e9f7dc; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1d1410; --paper:#2a1d17; --ink:#fbeee4; --muted:#c9ab9b; --line:#46332a;
+  --accent:#ff7a70; --accent-ink:#2a0e0b; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#3b2a21; --board:#1a3a30; --board-ink:#e9f7dc; color-scheme:dark }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px);background-size:100% 34px}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.back{flex-basis:100%;font-family:var(--display);font-weight:600;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,5vw,2.2rem);margin:0;line-height:1.1}
+h1 span{background:var(--sun);color:#2b1a12;padding:0 .25em;border-radius:6px;display:inline-block;transform:rotate(-2deg)}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:0}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 6px 0 var(--line)}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font-family:var(--display);font-weight:600;font-size:1.05rem;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);transition:transform .08s}
+button:active{transform:translateY(3px)}
+button.ghost{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.tag{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.pickbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+.pickbtn small{font-family:var(--body);font-weight:400;font-size:.88rem;color:var(--muted)}
+.pickbtn .best{font-size:.85rem;color:var(--accent)}
+.reading{background:var(--bg);border-radius:14px;padding:16px 18px;border-left:6px solid var(--sun)}
+.reading p{margin:0;font-size:1.08rem;line-height:1.75;text-indent:1.5em}
+.reading mark{background:none;color:inherit;text-decoration:underline dotted var(--accent) 2px;text-underline-offset:4px;font-weight:700}
+fieldset{border:none;margin:0;padding:12px 14px;border-radius:14px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+legend{font-weight:700;padding:0;margin-bottom:6px;float:left;width:100%}
+legend+*{clear:both}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:var(--paper);cursor:pointer}
+.opt input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px;flex:none}
+.opt.ok{border-color:var(--good);background:var(--good-bg)} .opt.ko{border-color:var(--bad);background:var(--bad-bg)}
+fieldset.ok{outline:3px solid var(--good)} fieldset.ko{outline:3px solid var(--bad)}
+.voc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:8px 14px;align-items:center}
+.voc .w{font-family:var(--display);font-weight:600;font-size:1.1rem}
+.voc .w small{display:block;font-family:var(--body);font-weight:400;font-size:.8rem;color:var(--muted)}
+.voc input{width:100%;font-family:var(--body);font-size:1.05rem;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.voc input.ok{border-color:var(--good);background:var(--good-bg)} .voc input.ko{border-color:var(--bad);background:var(--bad-bg)}
+.voc .sol{grid-column:1 / -1;font-size:.9rem;margin-top:-4px}
+.voc .sol.ok{color:var(--good)} .voc .sol.ko{color:var(--bad)}
+.hint{font-size:.9rem;color:var(--good);font-weight:700}
+.hint.ko{color:var(--bad)}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ko{background:var(--bad-bg);color:var(--bad)}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
+.stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat div{border-radius:12px;padding:8px 14px;font-family:var(--display);font-weight:600}
+.stat .g{background:var(--good-bg);color:var(--good)} .stat .b{background:var(--bad-bg);color:var(--bad)}
+.bycat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.bycat div{background:var(--bg);border-radius:12px;padding:8px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.bycat span{display:block;font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted)}
+.miss{display:flex;flex-direction:column;gap:10px}
+.miss article{border-left:5px solid var(--bad);background:var(--bg);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0;overflow-wrap:anywhere}
+.miss .q{font-weight:700;font-family:var(--display);font-size:1.1rem} .miss .yours{color:var(--bad)} .miss .right{color:var(--good);font-weight:700}
+textarea.report{width:100%;min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.45;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical}
+details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;margin-top:4px}
+.replist{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 12px}
+.rep-row .info{min-width:0;font-variant-numeric:tabular-nums}
+.rep-row button{padding:7px 12px;font-size:.92rem}
+@media (max-width:520px){ .card{padding:16px} .voc{grid-template-columns:1fr} .voc .w{margin-top:6px} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+#confetti{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <a class="back" href="../index.html">← Tots els jocs</a>
+    <h1>Comprensió Lectora <span>i Vocabulari</span></h1>
+    <button class="ghost" id="soundBtn" aria-pressed="true" type="button">So: sí</button>
+  </header>
+
+  <section class="card" id="start">
+    <h2>Llegeix, entén i tradueix</h2>
+    <p class="muted" style="margin:0">Tria una lectura. Llegeix el text amb calma, respon les <b>5 preguntes</b> i després tradueix al castellà les paraules i les <b>frases fetes</b> marcades al text. El text no desapareix: el pots tornar a llegir sempre que vulguis.</p>
+    <div class="tag">Tria la lectura</div>
+    <div class="picks" id="picks"></div>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="tag" id="qTag"></div>
+    <h2 id="qTitle"></h2>
+    <div class="reading" id="qText"></div>
+    <form id="qForm" autocomplete="off" style="display:flex;flex-direction:column;gap:16px">
+      <h3>1. Comprensió lectora</h3>
+      <div id="qList" style="display:flex;flex-direction:column;gap:12px"></div>
+      <h3>2. Vocabulari: tradueix al castellà</h3>
+      <p class="small muted" style="margin:-8px 0 0">Les paraules estan subratllades al text. Fixa't en la frase on surten per entendre què volen dir.</p>
+      <div class="voc" id="vList"></div>
+      <div id="fb" hidden></div>
+      <div class="row">
+        <button type="submit" id="checkBtn">Comprova</button>
+        <button type="button" class="ghost" id="quitBtn">Tria una altra lectura</button>
+        <button type="button" id="seeBtn" hidden>Mira el resultat</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card" id="results" hidden>
+    <h2 id="resTitle"></h2>
+    <div class="score">
+      <div class="num" id="resNum"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="stars" id="resStars"></div>
+        <div class="stat"><div class="g" id="resOk"></div><div class="b" id="resKo"></div></div>
+      </div>
+    </div>
+    <div><div class="tag" style="margin-bottom:8px">Encerts per tipus</div><div class="bycat" id="byCat"></div></div>
+    <div id="missBlock"><div class="tag" style="margin-bottom:8px">Errors i per què</div><div class="miss" id="missList"></div></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="tag">Informe de la prova</div>
+      <div class="row">
+        <button type="button" id="dlBtn">Descarrega l'informe (.txt)</button>
+        <button type="button" class="ghost" id="copyBtn">Copia l'informe</button>
+      </div>
+      <span class="small muted" id="dlMsg" aria-live="polite"></span>
+      <details class="rep"><summary>Mostra l'informe</summary><textarea class="report" id="reportText" readonly aria-label="Informe"></textarea></details>
+    </div>
+    <div class="row">
+      <button type="button" id="againBtn">Torna a fer aquesta lectura</button>
+      <button type="button" class="ghost" id="homeBtn">Tria una altra lectura</button>
+    </div>
+  </section>
+
+  <section class="card" id="reports">
+    <h2>Informes desats</h2>
+    <p class="muted small" style="margin:0">Cada prova acabada es desa aquí automàticament perquè el mestre la pugui revisar. Els més nous primer.</p>
+    <div class="replist" id="repList"></div>
+    <span class="small muted" id="repMsg" aria-live="polite"></span>
+  </section>
+</div>
+
+<script>
+// ---------- readings: [[word]] marks vocabulary in the text; q[].a is the index of the right option ----------
+const READINGS=[
+{ title:"Una excursió a la muntanya", theme:"Natura i família",
+  text:"Diumenge al matí, la Laia i el seu germà Pau van anar d'excursió a la muntanya amb els pares. Es van llevar molt [[d'hora]] i van preparar la motxilla amb entrepans, fruita i una cantimplora plena d'aigua. El camí pujava entre pins i [[alzines]], i de tant en tant s'aturaven a descansar. En Pau, que sempre va amb pressa, anava davant de tothom. A mig camí van trobar una font d'aigua fresca i van omplir les ampolles. Quan van arribar al [[cim]], el paisatge era preciós: es veia tot el poble i, al fons, el mar. La Laia va fer fotos d'un [[esquirol]] que saltava d'una [[branca]] a l'altra. Després de dinar, el cel [[es va ennuvolar]] i van decidir baixar abans que plogués. Van arribar a casa cansats, però [[contents com unes castanyoles]]. Aquella nit, en Pau va [[dormir com un tronc]].",
+  q:[
+    {q:"Quin dia van anar d'excursió?", o:["Dissabte","Diumenge","Dilluns"], a:1},
+    {q:"Què van trobar a mig camí?", o:["Un riu molt gran","Una font d'aigua fresca","Una cabana abandonada"], a:1},
+    {q:"Què es veia des del cim?", o:["Tot el poble i el mar","Només arbres i roques","Una ciutat molt gran"], a:0},
+    {q:"Per què van decidir baixar?", o:["Perquè es feia fosc","Perquè en Pau estava cansat","Perquè el cel es va ennuvolar i podia ploure"], a:2},
+    {q:"Què vol dir que en Pau «va dormir com un tronc»?", o:["Que va dormir molt profundament","Que va dormir al bosc","Que no va poder dormir"], a:0}],
+  v:[
+    {w:"d'hora", ok:["temprano","pronto"]},
+    {w:"alzines", ok:["encinas","encina"]},
+    {w:"cim", ok:["cima","cumbre","pico"]},
+    {w:"esquirol", ok:["ardilla"]},
+    {w:"branca", ok:["rama"]},
+    {w:"es va ennuvolar", ok:["se nublo","se nublo el cielo","se cubrio de nubes","se lleno de nubes","nublarse","se ha nublado"]},
+    {w:"contents com unes castanyoles", fet:true, ok:["contentos como unas castanuelas","mas contentos que unas castanuelas","felices como perdices","muy contentos","contentisimos","muy felices"]},
+    {w:"dormir com un tronc", fet:true, ok:["dormir como un tronco","dormir profundamente","dormir como un lirón","dormir como un liron","durmio como un tronco","dormir muy profundamente"]}]},
+{ title:"La gata de l'àvia", theme:"Animals",
+  text:"L'àvia Rosa viu en una casa vella amb un jardí ple de flors i una gata que es diu Mixeta. La Mixeta és blanca amb taques negres i té els ulls verds com dues olives. Cada matí, l'àvia li posa llet en un plat i la gata se la beu a poc a poc. Un dia de [[tardor]], la Mixeta va desaparèixer i l'àvia es va posar molt trista. El seu nét Marc la va buscar per tot arreu: a la [[teulada]], sota el llit i darrere el galliner. Aleshores va començar a [[ploure a bots i barrals]] i en Marc va tornar a casa [[xop]]. Quan va obrir la porta del [[rebost]], va sentir un [[miol]] molt fluix. La Mixeta era allà, amagada dins una [[cistella]], amb tres gatets petitons! L'àvia va somriure [[d'orella a orella]] i va dir que els gatets es quedarien a casa.",
+  q:[
+    {q:"Com és la Mixeta?", o:["Negra amb taques blanques","Blanca amb taques negres","Grisa amb ratlles"], a:1},
+    {q:"Què fa l'àvia cada matí?", o:["Li posa llet en un plat","La porta a passejar","La pentina al jardí"], a:0},
+    {q:"On va buscar en Marc la gata abans de la pluja?", o:["Al parc i a l'escola","A la platja","A la teulada, sota el llit i darrere el galliner"], a:2},
+    {q:"On era, finalment, la Mixeta?", o:["Dins una cistella al rebost","Dalt d'un arbre","Al galliner"], a:0},
+    {q:"Per què s'havia amagat la Mixeta?", o:["Perquè tenia por de la pluja","Perquè havia tingut gatets","Perquè s'havia enfadat amb l'àvia"], a:1}],
+  v:[
+    {w:"tardor", ok:["otono"]},
+    {w:"teulada", ok:["tejado","techo"]},
+    {w:"xop", ok:["empapado","mojado","calado","chorreando","empapado de agua"]},
+    {w:"rebost", ok:["despensa"]},
+    {w:"miol", ok:["maullido","miau"]},
+    {w:"cistella", ok:["cesta","cesto","canasta","canasto"]},
+    {w:"ploure a bots i barrals", fet:true, ok:["llover a cantaros","llover mucho","llovia a cantaros","diluviar","llover muchisimo"]},
+    {w:"somriure d'orella a orella", fet:true, ok:["sonreir de oreja a oreja","sonrio de oreja a oreja","sonreir mucho","de oreja a oreja"]}]},
+{ title:"El mercat del dissabte", theme:"El barri",
+  text:"Cada dissabte, en Jordi acompanya el seu pare al mercat del barri. Abans de sortir, fan una llista de la compra perquè no se'ls oblidi res. A la [[parada]] de la fruita compren pomes, peres i un meló ben madur. La senyora Montse, la [[peixatera]], sempre els saluda amb un somriure i els dona un consell per cuinar el peix. Després van a la [[fleca]] a buscar una barra de pa i unes ensaïmades per esmorzar. En Jordi s'encarrega de pagar i de comptar el [[canvi]], perquè vol aprendre a fer comptes. Aquell dissabte, però, hi havia una [[cua]] llarguíssima a la carnisseria. El pare va dir que no calia [[fer-ne un gra massa]] i van esperar xerrant amb els [[veïns]]. Al final van tornar a casa carregats, amb el cistell [[ple a vessar]]. A en Jordi li agrada el mercat perquè sempre hi aprèn alguna cosa nova.",
+  q:[
+    {q:"Amb qui va en Jordi al mercat?", o:["Amb la seva mare","Amb el seu pare","Amb el seu avi"], a:1},
+    {q:"Per què fan una llista de la compra?", o:["Perquè no se'ls oblidi res","Per gastar més diners","Perquè ho demana la mestra"], a:0},
+    {q:"Què compren a la fleca?", o:["Peix i marisc","Pomes i peres","Una barra de pa i unes ensaïmades"], a:2},
+    {q:"Per què en Jordi paga i compta el canvi?", o:["Perquè el pare no porta diners","Perquè vol aprendre a fer comptes","Perquè és un joc del mercat"], a:1},
+    {q:"Què passava aquell dissabte a la carnisseria?", o:["Estava tancada","No tenien carn","Hi havia una cua molt llarga"], a:2}],
+  v:[
+    {w:"parada", ok:["puesto","parada","tenderete"]},
+    {w:"peixatera", ok:["pescadera"]},
+    {w:"fleca", ok:["panaderia","horno"]},
+    {w:"canvi", ok:["cambio","vuelta","vueltas"]},
+    {w:"cua", ok:["cola","fila"]},
+    {w:"veïns", ok:["vecinos"]},
+    {w:"fer-ne un gra massa", fet:true, ok:["exagerar","pasarse","sacar las cosas de quicio","hacer una montana de un grano de arena","no exagerar"]},
+    {w:"ple a vessar", fet:true, ok:["lleno a rebosar","lleno hasta arriba","a rebosar","muy lleno","hasta los topes","lleno hasta los topes","rebosante"]}]},
+{ title:"La gran final", theme:"Esport",
+  text:"El divendres a la tarda, l'equip de l'escola jugava la final del [[torneig]] contra el col·legi del poble veí. La Carla era la portera i estava tan nerviosa que tenia un [[nus]] a l'estómac. A la primera part, els rivals van marcar un gol i alguns jugadors van començar a abaixar el cap. A la mitja part, l'entrenador els va reunir i els va dir: «Ara cal [[posar-se les piles]] i no [[tirar la tovallola]]!». A la segona part, l'equip va jugar amb molta més [[empenta]]. En Hugo va [[xutar]] des de fora de l'àrea i la [[pilota]] va entrar per l'escaire. Faltant dos minuts, la Carla va aturar un penal i tota la [[graderia]] va cridar d'alegria. El partit va acabar en [[empat]] i el guanyador es va decidir als penals. L'escola va guanyar la copa i tots es van abraçar ben junts. Aquell dia van aprendre que treballar en equip val més que qualsevol gol.",
+  q:[
+    {q:"En quina posició jugava la Carla?", o:["Portera","Davantera","Defensa"], a:0},
+    {q:"Com anava el partit a la mitja part?", o:["L'escola guanyava","L'escola perdia per un gol","Anaven empatats"], a:1},
+    {q:"Què va fer en Hugo?", o:["Va aturar un penal","Va marcar un gol des de fora de l'àrea","Es va fer mal al peu"], a:1},
+    {q:"Com es va decidir qui guanyava la final?", o:["Als penals","Amb una pròrroga","Tirant una moneda"], a:0},
+    {q:"Què vol dir «no tirar la tovallola»?", o:["No llençar la tovallola al públic","No rendir-se","No eixugar-se la suor"], a:1}],
+  v:[
+    {w:"torneig", ok:["torneo","campeonato"]},
+    {w:"nus", ok:["nudo"]},
+    {w:"empenta", ok:["empuje","ganas","energia","fuerza","impulso"]},
+    {w:"xutar", ok:["chutar","tirar","disparar"]},
+    {w:"pilota", ok:["pelota","balon"]},
+    {w:"graderia", ok:["grada","gradas","graderio","publico"]},
+    {w:"empat", ok:["empate"]},
+    {w:"posar-se les piles", fet:true, ok:["ponerse las pilas","ponernos las pilas","espabilar","espabilarse","esforzarse mas","esforzarse"]}]},
+{ title:"Tempesta al far", theme:"Aventura",
+  text:"En Biel viu en un poble de pescadors, al costat del mar, i el seu avi és el guardià del far. Una nit d'hivern es va aixecar una tempesta molt forta: bufava el vent i les [[onades]] eren altíssimes. De sobte, la llum del far es va apagar i l'avi va dir que calia arreglar-la de seguida. En Biel, que normalment és una mica [[poruc]], va agafar la [[llanterna]] i el va acompanyar escales amunt. A dalt de tot [[feia un fred que pelava]] i els vidres tremolaven amb cada ràfega de vent. L'avi va canviar la [[bombeta]] mentre en Biel l'il·luminava amb la llanterna. Quan la llum es va tornar a encendre, van veure una barca petita que tornava cap al port. Gràcies al far, els pescadors van poder arribar [[sans i estalvis]]. [[L'endemà]], tot el poble va felicitar en Biel per la seva [[valentia]]. Des d'aquell dia, ja no té por de pujar al far, ni de nit ni de dia.",
+  q:[
+    {q:"Qui és el guardià del far?", o:["El pare d'en Biel","Un pescador del poble","L'avi d'en Biel"], a:2},
+    {q:"Quin temps feia aquella nit?", o:["Hi havia una tempesta amb molt de vent","Nevava molt fort","Feia calor i hi havia lluna plena"], a:0},
+    {q:"Què va fer en Biel per ajudar l'avi?", o:["Va canviar la bombeta","El va il·luminar amb la llanterna","Va trucar als bombers"], a:1},
+    {q:"Què van veure quan la llum es va tornar a encendre?", o:["Un vaixell molt gran","Una balena","Una barca petita que tornava al port"], a:2},
+    {q:"Com era en Biel abans d'aquella nit?", o:["Molt valent","Una mica poruc","Molt dormilega"], a:1}],
+  v:[
+    {w:"onades", ok:["olas"]},
+    {w:"poruc", ok:["miedoso","cobarde","asustadizo","miedica","gallina"]},
+    {w:"llanterna", ok:["linterna"]},
+    {w:"bombeta", ok:["bombilla","bombillo"]},
+    {w:"l'endemà", ok:["al dia siguiente","el dia siguiente","al otro dia","el dia despues","al dia despues"]},
+    {w:"valentia", ok:["valentia","valor","coraje"]},
+    {w:"feia un fred que pelava", fet:true, ok:["hacia un frio que pelaba","hacia mucho frio","hacia muchisimo frio","hacia un frio terrible"]},
+    {w:"sans i estalvis", fet:true, ok:["sanos y salvos"]}]}
+];
+
+const $=id=>document.getElementById(id);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+// ---------- Spanish answer matching: no accents, no punctuation, no leading article ----------
+function norm(s){
+  return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[¡!¿?.,;:"'«»()]/g," ")
+    .replace(/\s+/g," ").trim().replace(/^(el|la|los|las|un|una|unos|unas|lo) /,"");
+}
+function lev(a,b){const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+function checkVoc(input,v){
+  const x=norm(input); if(!x) return {ok:false,why:"No has escrit res."};
+  const oks=v.ok.map(norm);
+  if(oks.includes(x)) return {ok:true};
+  const near=oks.find(o=>o.length>=5 && lev(x,o)<=1);
+  if(near) return {ok:true,note:"Gairebé perfecte: vigila com s'escriu."};
+  return {ok:false,why: v.fet ? "És una frase feta: no es tradueix paraula per paraula, sinó pel que vol dir." : "Rellegeix la frase del text on surt la paraula."};
+}
+
+// ---------- sound ----------
+let sound=true; try{ if(localStorage.getItem("cat-sound")==="off") sound=false; }catch(e){}
+const setSoundBtn=()=>{ $("soundBtn").textContent="So: "+(sound?"sí":"no"); $("soundBtn").setAttribute("aria-pressed",String(sound)); };
+setSoundBtn();
+$("soundBtn").onclick=()=>{ sound=!sound; setSoundBtn(); try{localStorage.setItem("cat-sound",sound?"on":"off")}catch(e){} };
+let actx=null;
+function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+  (ok?[660,880]:[300,220]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"sawtooth";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*0.11);g.gain.exponentialRampToValueAtTime(ok?0.18:0.08,t+i*0.11+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.11+0.16);
+  o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
+
+// ---------- start screen ----------
+const KEY="reports-informe-lectura-catala";
+const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
+function renderPicks(){
+  const reps=loadLocal();
+  $("picks").innerHTML="";
+  READINGS.forEach((r,i)=>{
+    const mine=reps.filter(x=>x.reading===i), best=mine.reduce((m,x)=>Math.max(m,+x.pct||0),-1);
+    const b=document.createElement("button"); b.type="button"; b.className="pickbtn";
+    b.innerHTML=`<span>Lectura ${i+1} · ${esc(r.title)}</span><small>${esc(r.theme)} · 5 preguntes i ${r.v.length} de vocabulari</small><span class="best">${best>=0?`Millor resultat: ${best}%`:"Encara no l'has feta"}</span>`;
+    b.onclick=()=>startReading(i); $("picks").append(b);
+  });
+}
+
+// ---------- reading ----------
+let cur=0, opts=[], checked=false, results=[];
+function startReading(i){
+  cur=i; checked=false; warned=false; const R=READINGS[i];
+  ["start","results","reports"].forEach(x=>$(x).hidden=true); $("quiz").hidden=false;
+  $("qTag").textContent=`Lectura ${i+1} de ${READINGS.length} · ${R.theme}`;
+  $("qTitle").textContent=R.title;
+  $("qText").innerHTML="<p>"+esc(R.text).replace(/\[\[(.+?)\]\]/g,"<mark>$1</mark>")+"</p>";
+  opts=R.q.map(q=>shuffle(q.o.map((t,k)=>({t,k}))));
+  $("qList").innerHTML=R.q.map((q,n)=>`<fieldset id="f${n}"><legend>${n+1}. ${esc(q.q)}</legend>${opts[n].map((o,j)=>
+    `<label class="opt"><input type="radio" name="q${n}" value="${o.k}"><span>${esc(o.t)}</span></label>`).join("")}<span class="hint" hidden></span></fieldset>`).join("");
+  $("vList").innerHTML=R.v.map((v,n)=>`<label class="w" for="v${n}">${esc(v.w)}${v.fet?"<small>frase feta</small>":""}</label>
+    <input id="v${n}" type="text" autocapitalize="off" spellcheck="false" placeholder="En castellà…"><span class="sol" id="s${n}" hidden></span>`).join("");
+  $("fb").hidden=true; $("checkBtn").hidden=false; $("seeBtn").hidden=true;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+$("quitBtn").onclick=goHome;
+$("homeBtn").onclick=goHome;
+$("againBtn").onclick=()=>startReading(cur);
+$("seeBtn").onclick=showResults;
+function goHome(){ ["quiz","results"].forEach(x=>$(x).hidden=true); $("start").hidden=false; $("reports").hidden=false; renderPicks(); window.scrollTo({top:0}); }
+$("vList").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.tagName==="INPUT"){ e.preventDefault(); const n=$("v"+(+e.target.id.slice(1)+1)); if(n) n.focus(); else $("checkBtn").focus(); } });
+
+let warned=false;
+$("qForm").addEventListener("submit",e=>{
+  e.preventDefault(); if(checked) return showResults();
+  const R=READINGS[cur];
+  const missingQ=R.q.filter((q,n)=>!document.querySelector(`input[name=q${n}]:checked`)).length;
+  const missingV=R.v.filter((v,n)=>!$("v"+n).value.trim()).length;
+  if((missingQ||missingV)&&!warned){ warned=true; const fb=$("fb"); fb.hidden=false; fb.className="fb ko";
+    fb.textContent=`Et falten ${missingQ+missingV} respostes${missingQ?` (${missingQ} de comprensió)`:""}. Si vols comprovar igualment, torna a prémer «Comprova».`; return; }
+  grade();
+});
+function grade(){
+  const R=READINGS[cur]; checked=true; warned=false; results=[];
+  R.q.forEach((q,n)=>{
+    const sel=document.querySelector(`input[name=q${n}]:checked`), k=sel?+sel.value:-1, ok=k===q.a, f=$("f"+n);
+    f.classList.add(ok?"ok":"ko");
+    f.querySelectorAll(".opt").forEach(l=>{ const inp=l.querySelector("input"); inp.disabled=true;
+      if(+inp.value===q.a) l.classList.add("ok"); else if(inp.checked) l.classList.add("ko"); });
+    const h=f.querySelector(".hint"); h.hidden=false; h.className="hint"+(ok?"":" ko");
+    h.textContent= ok? pick(["Molt bé!","Correcte!","Perfecte!"]) : k<0? `No has respost. La resposta és: ${q.o[q.a]}` : `La resposta correcta és: ${q.o[q.a]}`;
+    results.push({type:"q",label:q.q,yours:k<0?"(sense resposta)":q.o[k],right:q.o[q.a],ok,why:ok?"":"Torna a llegir el text: la resposta hi surt."});
+  });
+  R.v.forEach((v,n)=>{
+    const inp=$("v"+n), c=checkVoc(inp.value,v), s=$("s"+n);
+    inp.classList.add(c.ok?"ok":"ko"); inp.readOnly=true; s.hidden=false; s.className="sol "+(c.ok?"ok":"ko");
+    s.textContent= c.ok ? (c.note? `${c.note} (${v.ok[0]})` : `Correcte! També es pot dir: ${v.ok.slice(0,3).join(", ")}`) : `Solució: ${v.ok.slice(0,3).join(", ")}. ${c.why}`;
+    results.push({type:v.fet?"f":"v",label:v.w,yours:inp.value.trim()||"(buit)",right:v.ok.slice(0,3).join(" / "),ok:c.ok,why:c.why||"",note:c.note||""});
+  });
+  const okN=results.filter(r=>r.ok).length; beep(okN/results.length>=.5);
+  const fb=$("fb"); fb.hidden=true;
+  $("checkBtn").hidden=true; $("seeBtn").hidden=false; $("seeBtn").focus();
+  $("seeBtn").textContent=`Mira el resultat (${okN}/${results.length})`;
+}
+
+// ---------- results ----------
+const STAR=f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;
+const TYPES=[{t:"q",name:"Comprensió lectora"},{t:"v",name:"Vocabulari"},{t:"f",name:"Frases fetes"}];
+function showResults(){
+  $("quiz").hidden=true; $("results").hidden=false;
+  const ok=results.filter(r=>r.ok), ko=results.filter(r=>!r.ok), pct=Math.round(ok.length/results.length*100);
+  const stars=pct>=95?3:pct>=75?2:pct>=50?1:0;
+  $("resTitle").textContent = pct===100?"Perfecte! Has entès el text de meravella.":pct>=75?"Molt bé! Gairebé ho tens.":pct>=50?"Bona feina, però cal rellegir amb calma.":"Cal practicar una mica més.";
+  $("resNum").textContent=`${ok.length}/${results.length}`;
+  $("resStars").innerHTML=[0,1,2].map(i=>STAR(i<stars)).join("");
+  $("resOk").textContent=`${ok.length} encerts`; $("resKo").textContent=`${ko.length} errors`;
+  $("byCat").innerHTML=TYPES.map(g=>{ const r=results.filter(x=>x.type===g.t); if(!r.length) return "";
+    return `<div>${r.filter(x=>x.ok).length}/${r.length}<span>${g.name}</span></div>`; }).join("");
+  $("missBlock").hidden=!ko.length;
+  $("missList").innerHTML=ko.map(r=>`<article><span class="q">${esc(r.label)}</span><span>Has respost: <span class="yours">${esc(r.yours)}</span></span>
+     <span>Correcte: <span class="right">${esc(r.right)}</span></span><span class="small">Motiu: ${esc(r.why)}</span></article>`).join("");
+  buildReport(); saveReport();
+  if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ---------- report: saved and downloaded automatically ----------
+const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+const dlMsg=t=>{ $("dlMsg").textContent=t; };
+function buildReport(){
+  const R=READINGS[cur], ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="COMPRENSIÓ LECTORA I VOCABULARI - INFORME";
+  const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),`Lectura ${cur+1}: ${R.title}`,"",
+    `Resultat: ${ok} de ${n} encerts (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
+    `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,"","ENCERTS PER TIPUS","-----------------"];
+  TYPES.forEach(g=>{ const r=results.filter(x=>x.type===g.t); if(r.length) L.push(`${g.name}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  L.push("","PREGUNTES I RESPOSTES","---------------------");
+  results.forEach((r,i)=>{ L.push(`${i+1}. ${r.type==="q"?"":"Tradueix: "}${r.label}${r.type==="f"?" (frase feta)":""}`,`   Ha respost: ${r.yours}`,`   Correcte: ${r.right}`,`   Resultat: ${r.ok?"ENCERT":"ERROR"}`);
+    if(!r.ok) L.push(`   Motiu: ${r.why}`); else if(r.note) L.push(`   Nota: ${r.note}`); L.push(""); });
+  L.push("RECORDA","-------","Llegeix el text dues vegades: la primera per saber de què va i la segona buscant les respostes.","Les frases fetes no es tradueixen paraula per paraula: «ploure a bots i barrals» és «llover a cántaros».");
+  $("reportText").value=L.join("\n");
+}
+function saveFile(name,text){
+  const url=URL.createObjectURL(new Blob(["﻿"+String(text).replace(/\r?\n/g,"\r\n")],{type:"text/plain;charset=utf-8"}));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+function saveReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, file=`informe-lectura-catala-${cur+1}_${stamp()}.txt`;
+  const data={id:String(Date.now()),game:"Comprensió Lectora i Vocabulari",reading:cur,at:new Date().toISOString(),correct:ok,total:n,pct:Math.round(ok/n*100),
+    grade:(ok/n*10).toFixed(1).replace(".",","),valuation:$("resTitle").textContent,file,text:$("reportText").value};
+  try{ const list=loadLocal(); list.unshift(data); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
+  renderReports();
+  try{ saveFile(file,data.text); dlMsg("Informe desat a «Informes desats» i descarregat automàticament a la carpeta de Baixades."); }
+  catch(e){ dlMsg("L'informe s'ha desat a «Informes desats». Si no s'ha descarregat, fes servir «Descarrega l'informe»."); }
+}
+$("dlBtn").onclick=()=>saveFile(`informe-lectura-catala-${cur+1}_${stamp()}.txt`,$("reportText").value);
+$("copyBtn").onclick=()=>{
+  const t=$("reportText");
+  const fallback=()=>{ t.closest("details").open=true; t.focus(); t.select(); dlMsg("Text seleccionat: prem Ctrl+C per copiar-lo."); };
+  try{ navigator.clipboard.writeText(t.value).then(()=>dlMsg("Informe copiat."),fallback); }catch(e){ fallback(); }
+};
+function renderReports(){
+  const L=$("repList"), list=loadLocal();
+  if(!list.length){ L.innerHTML='<span class="muted">Encara no hi ha informes. Quan acabis una lectura, apareixerà aquí.</span>'; return; }
+  L.innerHTML="";
+  list.forEach(r=>{
+    const row=document.createElement("div"); row.className="rep-row";
+    const info=document.createElement("div"); info.className="info";
+    info.textContent=`${new Date(r.at).toLocaleString("ca-ES",{dateStyle:"short",timeStyle:"short"})} · Lectura ${(+r.reading||0)+1} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    const btns=document.createElement("div"); btns.className="row";
+    const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Descarrega"; b1.onclick=()=>saveFile(r.file||"informe.txt",String(r.text||""));
+    const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copia";
+    b2.onclick=()=>{ try{ navigator.clipboard.writeText(String(r.text||"")).then(()=>{$("repMsg").textContent="Informe copiat.";},()=>{$("repMsg").textContent="No s'ha pogut copiar.";}); }catch(e){} };
+    btns.append(b1,b2); row.append(info,btns); L.append(row);
+  });
+}
+
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const cols=["#ffc531","#c7362f","#2f5bea","#13916b","#9b4fd1"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:5+Math.random()*6,c:pick(cols)}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(++t<220)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+}
+
+renderPicks(); renderReports();
+</script>
+</body>
+</html>
