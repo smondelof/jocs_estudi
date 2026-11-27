@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vocabulari amb imatges</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one picture on a chalkboard panel, four Catalan names to choose from; 10 new words every game */
+:root{
+  --bg:#fff6e8; --paper:#ffffff; --ink:#2b1a12; --muted:#7a6155; --line:#f1dcc4;
+  --accent:#c7362f; --accent-ink:#ffffff; --sun:#ffc531; --good:#14905a; --good-bg:#dff5ea;
+  --bad:#d33c3c; --bad-bg:#fde6e6; --chip:#fbe8d2; --board:#21463a; --board-ink:#f4fbe9;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1d1410; --paper:#2a1d17; --ink:#fbeee4; --muted:#c9ab9b; --line:#46332a;
+  --accent:#ff7a70; --accent-ink:#2a0e0b; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#3b2a21; --board:#1a3a30; --board-ink:#e9f7dc; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1d1410; --paper:#2a1d17; --ink:#fbeee4; --muted:#c9ab9b; --line:#46332a;
+  --accent:#ff7a70; --accent-ink:#2a0e0b; --sun:#ffd25c; --good:#4fd18f; --good-bg:#163527;
+  --bad:#ff7b7b; --bad-bg:#3d1e24; --chip:#3b2a21; --board:#1a3a30; --board-ink:#e9f7dc; color-scheme:dark }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px);background-size:100% 34px}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.back{flex-basis:100%;font-family:var(--display);font-weight:600;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,5vw,2.2rem);margin:0;line-height:1.1}
+h1 span{background:var(--sun);color:#2b1a12;padding:0 .25em;border-radius:6px;display:inline-block;transform:rotate(-2deg)}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:0}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 6px 0 var(--line)}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font-family:var(--display);font-weight:600;font-size:1.05rem;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);transition:transform .08s}
+button:active{transform:translateY(3px)}
+button.ghost{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.tag{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.pickbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+.pickbtn small{font-family:var(--body);font-weight:400;font-size:.88rem;color:var(--muted)}
+.pickbtn .best{font-size:.85rem;color:var(--accent)}
+.reading{background:var(--bg);border-radius:14px;padding:16px 18px;border-left:6px solid var(--sun)}
+.reading p{margin:0;font-size:1.08rem;line-height:1.75;text-indent:1.5em}
+.reading mark{background:none;color:inherit;text-decoration:underline dotted var(--accent) 2px;text-underline-offset:4px;font-weight:700}
+fieldset{border:none;margin:0;padding:12px 14px;border-radius:14px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+legend{font-weight:700;padding:0;margin-bottom:6px;float:left;width:100%}
+legend+*{clear:both}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:var(--paper);cursor:pointer}
+.opt input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px;flex:none}
+.opt.ok{border-color:var(--good);background:var(--good-bg)} .opt.ko{border-color:var(--bad);background:var(--bad-bg)}
+fieldset.ok{outline:3px solid var(--good)} fieldset.ko{outline:3px solid var(--bad)}
+.voc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:8px 14px;align-items:center}
+.voc .w{font-family:var(--display);font-weight:600;font-size:1.1rem}
+.voc .w small{display:block;font-family:var(--body);font-weight:400;font-size:.8rem;color:var(--muted)}
+.voc input{width:100%;font-family:var(--body);font-size:1.05rem;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.voc input.ok{border-color:var(--good);background:var(--good-bg)} .voc input.ko{border-color:var(--bad);background:var(--bad-bg)}
+.voc .sol{grid-column:1 / -1;font-size:.9rem;margin-top:-4px}
+.voc .sol.ok{color:var(--good)} .voc .sol.ko{color:var(--bad)}
+.hint{font-size:.9rem;color:var(--good);font-weight:700}
+.hint.ko{color:var(--bad)}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ko{background:var(--bad-bg);color:var(--bad)} .fb.ok{background:var(--good-bg);color:var(--good)}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
+.stat{display:flex;gap:10px;flex-wrap:wrap}
+.stat div{border-radius:12px;padding:8px 14px;font-family:var(--display);font-weight:600}
+.stat .g{background:var(--good-bg);color:var(--good)} .stat .b{background:var(--bad-bg);color:var(--bad)}
+.bycat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.bycat div{background:var(--bg);border-radius:12px;padding:8px 12px;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.bycat span{display:block;font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted)}
+.miss{display:flex;flex-direction:column;gap:10px}
+.miss article{border-left:5px solid var(--bad);background:var(--bg);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0;overflow-wrap:anywhere}
+.miss .q{font-weight:700;font-family:var(--display);font-size:1.1rem} .miss .yours{color:var(--bad)} .miss .right{color:var(--good);font-weight:700}
+textarea.report{width:100%;min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.45;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical}
+details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;margin-top:4px}
+.replist{display:flex;flex-direction:column;gap:8px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 12px}
+.rep-row .info{min-width:0;font-variant-numeric:tabular-nums}
+.rep-row button{padding:7px 12px;font-size:.92rem}
+@media (max-width:520px){ .card{padding:16px} .voc{grid-template-columns:1fr} .voc .w{margin-top:6px} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+#confetti{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
+.pic{background:var(--board);border-radius:18px;border:6px solid color-mix(in srgb, var(--board) 70%, #8a5a2b);display:grid;place-items:center;padding:18px 10px;
+  font-size:clamp(5.5rem,28vw,9rem);line-height:1.1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;user-select:none}
+.pic small{display:block;font-family:var(--body);font-size:.95rem;color:var(--board-ink);opacity:.8;text-align:center}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choices button{background:var(--chip);color:var(--ink);box-shadow:0 4px 0 var(--line);font-size:1.2rem;padding:14px 10px;border:2px solid transparent}
+.choices button.ok{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+.choices button.ko{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.choices button:disabled{cursor:default}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:600}
+.bar{height:12px;background:var(--chip);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:999px;transition:width .3s}
+.fb.ok{background:var(--good-bg);color:var(--good)} .fb small{display:block;font-weight:400;color:var(--ink);margin-top:2px}
+.miss .em{font-size:2rem;line-height:1}
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease-out}
+@media (max-width:360px){ .choices{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <a class="back" href="../index.html">← Tots els jocs</a>
+    <h1>Vocabulari <span>amb imatges</span></h1>
+    <button class="ghost" id="soundBtn" aria-pressed="true" type="button">So: sí</button>
+  </header>
+
+  <section class="card" id="start">
+    <h2>Com es diu en català?</h2>
+    <p class="muted" style="margin:0">Veuràs un dibuix i has de triar el nom correcte en català d'entre quatre opcions. Fixa't també en l'article: <b>el</b>, <b>la</b>, <b>l'</b>, <b>els</b>, <b>les</b>.</p>
+    <p class="muted small" style="margin:0">Cada partida té 10 dibuixos i cada vegada surten paraules noves que encara no has vist. Al final veuràs els encerts, els errors i la paraula correcta.</p>
+    <div class="row"><button type="button" id="goBtn">Comença (10 dibuixos)</button></div>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="hud"><span id="qCount"></span><span id="hudScore"></span></div>
+    <div class="bar"><i id="barFill" style="width:0%"></i></div>
+    <div class="pic" id="pic" role="img"></div>
+    <div class="choices" id="choices"></div>
+    <div id="fb" hidden></div>
+    <div class="row"><button type="button" id="nextBtn" hidden>Següent</button></div>
+  </section>
+
+  <section class="card" id="results" hidden>
+    <h2 id="resTitle"></h2>
+    <div class="score">
+      <div class="num" id="resNum"></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="stars" id="resStars"></div>
+        <div class="stat"><div class="g" id="resOk"></div><div class="b" id="resKo"></div></div>
+      </div>
+    </div>
+    <div><div class="tag" style="margin-bottom:8px">Encerts per tema</div><div class="bycat" id="byCat"></div></div>
+    <div id="missBlock"><div class="tag" style="margin-bottom:8px">Paraules per repassar</div><div class="miss" id="missList"></div></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="tag">Informe de la prova</div>
+      <div class="row">
+        <button type="button" id="dlBtn">Descarrega l'informe (.txt)</button>
+        <button type="button" class="ghost" id="copyBtn">Copia l'informe</button>
+      </div>
+      <span class="small muted" id="dlMsg" aria-live="polite"></span>
+      <details class="rep"><summary>Mostra l'informe</summary><textarea class="report" id="reportText" readonly aria-label="Informe"></textarea></details>
+    </div>
+    <div class="row">
+      <button type="button" id="againBtn">Torna a jugar (dibuixos nous)</button>
+      <button type="button" class="ghost" id="homeBtn">Inici</button>
+    </div>
+  </section>
+
+  <section class="card" id="reports">
+    <h2>Informes desats</h2>
+    <p class="muted small" style="margin:0">Cada prova acabada es desa aquí automàticament perquè el mestre la pugui revisar. Els més nous primer.</p>
+    <div class="replist" id="repList"></div>
+    <span class="small muted" id="repMsg" aria-live="polite"></span>
+  </section>
+</div>
+
+<script>
+// ---------- words: [picture, name in Catalan with article] grouped by theme ----------
+const CATS=[
+ {id:"fruita", name:"Fruita i menjar", items:[["🍎","la poma"],["🍐","la pera"],["🍌","el plàtan"],["🍇","el raïm"],["🍓","la maduixa"],["🍒","les cireres"],["🍑","el préssec"],["🍉","la síndria"],["🍋","la llimona"],["🍊","la taronja"],["🍍","la pinya"],["🍈","el meló"],["🥕","la pastanaga"],["🧅","la ceba"],["🧄","l'all"],["🥔","la patata"],["🍅","el tomàquet"],["🥒","el cogombre"],["🌽","el blat de moro"],["🍄","el bolet"],["🥚","l'ou"],["🧀","el formatge"],["🍞","el pa"],["🥛","la llet"],["🍯","la mel"]]},
+ {id:"animals", name:"Animals", items:[["🐶","el gos"],["🐱","el gat"],["🐭","el ratolí"],["🐰","el conill"],["🐻","l'ós"],["🐷","el porc"],["🐸","la granota"],["🐔","la gallina"],["🐑","l'ovella"],["🐴","el cavall"],["🐄","la vaca"],["🦆","l'ànec"],["🐢","la tortuga"],["🐌","el cargol"],["🦋","la papallona"],["🐝","l'abella"],["🐜","la formiga"],["🕷️","l'aranya"],["🐟","el peix"],["🦉","l'òliba"],["🐿️","l'esquirol"],["🦔","l'eriçó"],["🐍","la serp"],["🦊","la guineu"],["🐺","el llop"],["🦇","el ratpenat"],["🐘","l'elefant"],["🦒","la girafa"],["🐒","el mico"],["🐧","el pingüí"]]},
+ {id:"casa", name:"Casa, roba i escola", items:[["🪑","la cadira"],["🛏️","el llit"],["🚪","la porta"],["🪟","la finestra"],["🔑","la clau"],["🧹","l'escombra"],["✂️","les tisores"],["🥄","la cullera"],["🍴","la forquilla i el ganivet"],["🪥","el raspall de dents"],["🧽","l'esponja"],["💡","la bombeta"],["🕯️","l'espelma"],["⏰","el despertador"],["☂️","el paraigua"],["🧦","els mitjons"],["👖","els pantalons"],["👗","el vestit"],["👟","les sabatilles"],["🧤","els guants"],["🧣","la bufanda"],["🎒","la motxilla"],["✏️","el llapis"],["📏","el regle"],["📚","els llibres"],["🖍️","la cera"]]},
+ {id:"natura", name:"Natura i transport", items:[["🌳","l'arbre"],["🌸","la flor"],["🍂","les fulles"],["⭐","l'estrella"],["🌙","la lluna"],["☀️","el sol"],["☁️","el núvol"],["🌈","l'arc de Sant Martí"],["❄️","el floc de neu"],["🔥","el foc"],["⛰️","la muntanya"],["🌊","l'onada"],["🚲","la bicicleta"],["🚗","el cotxe"],["🚌","l'autobús"],["✈️","l'avió"],["🚂","el tren"],["⛵","el veler"],["🚁","l'helicòpter"],["🚀","el coet"]]},
+ {id:"cos", name:"El cos", items:[["👁️","l'ull"],["👂","l'orella"],["👃","el nas"],["👄","la boca"],["✋","la mà"],["🦶","el peu"],["🦷","la dent"],["🦵","la cama"],["💪","el braç"],["🧠","el cervell"],["❤️","el cor"],["🫁","els pulmons"]]}
+];
+const $=id=>document.getElementById(id);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const ALL=CATS.flatMap(c=>c.items.map(([e,w])=>({e,w,cat:c.id})));
+const ROUND=10, SEEN_KEY="vocab-imatges-vistes";
+
+// ---------- sound ----------
+let sound=true; try{ if(localStorage.getItem("cat-sound")==="off") sound=false; }catch(e){}
+const setSoundBtn=()=>{ $("soundBtn").textContent="So: "+(sound?"sí":"no"); $("soundBtn").setAttribute("aria-pressed",String(sound)); };
+setSoundBtn();
+$("soundBtn").onclick=()=>{ sound=!sound; setSoundBtn(); try{localStorage.setItem("cat-sound",sound?"on":"off")}catch(e){} };
+let actx=null;
+function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+  (ok?[660,880]:[300,220]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"sawtooth";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t+i*0.11);g.gain.exponentialRampToValueAtTime(ok?0.18:0.08,t+i*0.11+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.11+0.16);
+  o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
+
+// ---------- round: unseen words first, distractors from the same theme ----------
+let SEEN=new Set(); try{ SEEN=new Set(JSON.parse(localStorage.getItem(SEEN_KEY)||"[]")); }catch(e){}
+let catSel="all", round=[], idx=0, results=[], streak=0, answered=false;
+function buildRound(){
+  const pool=ALL.filter(x=>catSel==="all"||x.cat===catSel);
+  let fresh=shuffle(pool.filter(x=>!SEEN.has(x.w)));
+  if(fresh.length<ROUND){ pool.forEach(x=>SEEN.delete(x.w)); fresh=fresh.concat(shuffle(pool.filter(x=>!fresh.includes(x)))); }
+  const r=fresh.slice(0,Math.min(ROUND,pool.length)).map(x=>{
+    const same=ALL.filter(y=>y.cat===x.cat&&y.w!==x.w);
+    return {...x, opts:shuffle([x.w,...shuffle(same).slice(0,3).map(y=>y.w)])};
+  });
+  r.forEach(x=>SEEN.add(x.w)); try{ localStorage.setItem(SEEN_KEY,JSON.stringify([...SEEN])); }catch(e){}
+  return r;
+}
+$("goBtn").onclick=startRound;
+$("againBtn").onclick=startRound;
+$("homeBtn").onclick=()=>{ $("results").hidden=true; $("start").hidden=false; $("reports").hidden=false; };
+function startRound(){ round=buildRound(); idx=0; results=[]; streak=0;
+  ["start","results","reports"].forEach(i=>$(i).hidden=true); $("quiz").hidden=false; renderQ(); }
+function renderQ(){
+  const q=round[idx]; answered=false;
+  $("qCount").textContent=`Dibuix ${idx+1} de ${round.length}`;
+  $("barFill").style.width=(idx/round.length*100)+"%";
+  $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`;
+  $("pic").textContent=q.e; $("pic").setAttribute("aria-label","Dibuix "+(idx+1));
+  $("choices").innerHTML=""; q.opts.forEach(o=>{ const b=document.createElement("button"); b.type="button"; b.textContent=o; b.onclick=()=>answer(o,b); $("choices").append(b); });
+  $("fb").hidden=true; $("nextBtn").hidden=true;
+}
+function answer(o,btn){
+  if(answered) return; answered=true;
+  const q=round[idx], ok=o===q.w; streak= ok? streak+1 : 0;
+  [...$("choices").children].forEach(b=>{ b.disabled=true; if(b.textContent===q.w) b.classList.add("ok"); });
+  if(!ok) btn.classList.add("ko");
+  results.push({e:q.e,cat:q.cat,yours:o,right:q.w,ok}); beep(ok);
+  const fb=$("fb"); fb.hidden=false; fb.className="fb pop "+(ok?"ok":"ko");
+  fb.innerHTML= ok ? `${pick(["Molt bé!","Perfecte!","Genial!","Correcte!","Ets un crac!"])}${streak>=3?` ${streak} seguits!`:""}<small>${esc(q.w)}</small>` : `Ups! No és «${esc(o)}».<small>És <b>${esc(q.w)}</b>.</small>`;
+  $("nextBtn").hidden=false; $("nextBtn").textContent= idx===round.length-1? "Mira el resultat":"Següent"; setTimeout(()=>$("nextBtn").focus(),20);
+  $("hudScore").textContent=`Encerts: ${results.filter(r=>r.ok).length} · Ratxa: ${streak}`;
+}
+$("nextBtn").onclick=()=>{ idx++; if(idx>=round.length) finish(); else renderQ(); };
+document.addEventListener("keydown",e=>{ if($("quiz").hidden) return;
+  if(!answered && /^[1-4]$/.test(e.key)){ const b=$("choices").children[+e.key-1]; if(b) b.click(); } });
+
+// ---------- results ----------
+const STAR=f=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${f?"var(--sun)":"var(--chip)"}" stroke="var(--line)" stroke-width="1"/></svg>`;
+function finish(){
+  $("quiz").hidden=true; $("results").hidden=false;
+  const ok=results.filter(r=>r.ok), ko=results.filter(r=>!r.ok), pct=Math.round(ok.length/results.length*100);
+  const stars=pct>=95?3:pct>=75?2:pct>=50?1:0;
+  $("resTitle").textContent = pct===100?"Perfecte! Saps un munt de vocabulari.":pct>=75?"Molt bé! Gairebé ho tens.":pct>=50?"Bona feina, però cal repassar.":"Cal practicar una mica més.";
+  $("resNum").textContent=`${ok.length}/${results.length}`;
+  $("resStars").innerHTML=[0,1,2].map(i=>STAR(i<stars)).join("");
+  $("resOk").textContent=`${ok.length} encerts`; $("resKo").textContent=`${ko.length} errors`;
+  $("byCat").innerHTML=CATS.map(c=>{ const r=results.filter(x=>x.cat===c.id); if(!r.length) return ""; return `<div>${r.filter(x=>x.ok).length}/${r.length}<span>${c.name}</span></div>`; }).join("");
+  $("missBlock").hidden=!ko.length;
+  $("missList").innerHTML=ko.map(r=>`<article><span class="em">${r.e}</span><span>Has triat: <span class="yours">${esc(r.yours)}</span></span><span>Correcte: <span class="right">${esc(r.right)}</span></span></article>`).join("");
+  buildReport(); saveReport();
+  if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ---------- report: saved and downloaded automatically ----------
+const KEY="reports-informe-vocabulari-imatges-catala";
+const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+const dlMsg=t=>{ $("dlMsg").textContent=t; };
+function buildReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="VOCABULARI AMB IMATGES - INFORME";
+  const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),"",
+    `Resultat: ${ok} de ${n} encerts (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,`Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,"","ENCERTS PER TEMA","----------------"];
+  CATS.forEach(c=>{ const r=results.filter(x=>x.cat===c.id); if(r.length) L.push(`${c.name}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
+  L.push("","DIBUIXOS I RESPOSTES","--------------------");
+  results.forEach((r,i)=>L.push(`${i+1}. ${r.e}  Ha triat: ${r.yours} · Correcte: ${r.right} · ${r.ok?"ENCERT":"ERROR"}`));
+  $("reportText").value=L.join("\n");
+}
+function saveFile(name,text){
+  const url=URL.createObjectURL(new Blob(["﻿"+String(text).replace(/\r?\n/g,"\r\n")],{type:"text/plain;charset=utf-8"}));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
+function saveReport(){
+  const ok=results.filter(r=>r.ok).length, n=results.length, file=`informe-vocabulari-imatges_${stamp()}.txt`;
+  const data={id:String(Date.now()),game:"Vocabulari amb imatges",at:new Date().toISOString(),correct:ok,total:n,pct:Math.round(ok/n*100),
+    grade:(ok/n*10).toFixed(1).replace(".",","),valuation:$("resTitle").textContent,file,text:$("reportText").value};
+  try{ const list=loadLocal(); list.unshift(data); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
+  renderReports();
+  try{ saveFile(file,data.text); dlMsg("Informe desat a «Informes desats» i descarregat automàticament a la carpeta de Baixades."); }
+  catch(e){ dlMsg("L'informe s'ha desat a «Informes desats». Si no s'ha descarregat, fes servir «Descarrega l'informe»."); }
+}
+$("dlBtn").onclick=()=>saveFile(`informe-vocabulari-imatges_${stamp()}.txt`,$("reportText").value);
+$("copyBtn").onclick=()=>{ const t=$("reportText");
+  const fallback=()=>{ t.closest("details").open=true; t.focus(); t.select(); dlMsg("Text seleccionat: prem Ctrl+C per copiar-lo."); };
+  try{ navigator.clipboard.writeText(t.value).then(()=>dlMsg("Informe copiat."),fallback); }catch(e){ fallback(); } };
+function renderReports(){
+  const L=$("repList"), list=loadLocal();
+  if(!list.length){ L.innerHTML='<span class="muted">Encara no hi ha informes. Quan acabis una prova, apareixerà aquí.</span>'; return; }
+  L.innerHTML="";
+  list.forEach(r=>{ const row=document.createElement("div"); row.className="rep-row";
+    const info=document.createElement("div"); info.className="info";
+    info.textContent=`${new Date(r.at).toLocaleString("ca-ES",{dateStyle:"short",timeStyle:"short"})} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    const btns=document.createElement("div"); btns.className="row";
+    const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Descarrega"; b1.onclick=()=>saveFile(r.file||"informe.txt",String(r.text||""));
+    const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copia";
+    b2.onclick=()=>{ try{ navigator.clipboard.writeText(String(r.text||"")).then(()=>{$("repMsg").textContent="Informe copiat.";},()=>{$("repMsg").textContent="No s'ha pogut copiar.";}); }catch(e){} };
+    btns.append(b1,b2); row.append(info,btns); L.append(row); });
+}
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth; c.height=innerHeight;
+  const cols=["#ffc531","#c7362f","#2f5bea","#13916b","#9b4fd1"];
+  const ps=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:5+Math.random()*6,c:pick(cols)}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(++t<220)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+}
+renderReports();
+</script>
+</body>
+</html>

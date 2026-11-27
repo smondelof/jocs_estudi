@@ -70,7 +70,7 @@ fieldset.ok{outline:3px solid var(--good)} fieldset.ko{outline:3px solid var(--b
 .hint{font-size:.9rem;color:var(--good);font-weight:700}
 .hint.ko{color:var(--bad)}
 .fb{border-radius:12px;padding:12px 14px;font-weight:700}
-.fb.ko{background:var(--bad-bg);color:var(--bad)}
+.fb.ko{background:var(--bad-bg);color:var(--bad)} .fb.ok{background:var(--good-bg);color:var(--good)}
 .score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .score .num{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
 .stars{display:flex;gap:4px} .stars svg{width:34px;height:34px}
@@ -105,8 +105,8 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
 
   <section class="card" id="start">
     <h2>Llegeix, entén i tradueix</h2>
-    <p class="muted" style="margin:0">Tria una lectura. Llegeix el text amb calma, respon les <b>5 preguntes</b> i després tradueix al castellà les paraules i les <b>frases fetes</b> marcades al text. El text no desapareix: el pots tornar a llegir sempre que vulguis.</p>
-    <div class="tag">Tria la lectura</div>
+    <p class="muted" style="margin:0">Tria un exercici. Llegeix el text amb calma, respon les <b>5 preguntes</b> i després tradueix al castellà les paraules i les <b>frases fetes</b> marcades al text. El text no desapareix: el pots tornar a llegir sempre que vulguis. Si encertes el <b>80%</b> o més, aquell exercici canvia per un text nou.</p>
+    <div class="tag">Tria l'exercici</div>
     <div class="picks" id="picks"></div>
   </section>
 
@@ -131,6 +131,7 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
 
   <section class="card" id="results" hidden>
     <h2 id="resTitle"></h2>
+    <div id="passMsg" hidden></div>
     <div class="score">
       <div class="num" id="resNum"></div>
       <div style="display:flex;flex-direction:column;gap:6px">
@@ -166,7 +167,7 @@ details.rep summary{cursor:pointer;font-family:var(--display);font-weight:600;ma
 <script>
 // ---------- readings: [[word]] marks vocabulary in the text; q[].a is the index of the right option ----------
 const READINGS=[
-{ title:"Una excursió a la muntanya", theme:"Natura i família",
+{ slot:0, title:"Una excursió a la muntanya", theme:"Natura i família",
   text:"Diumenge al matí, la Laia i el seu germà Pau van anar d'excursió a la muntanya amb els pares. Es van llevar molt [[d'hora]] i van preparar la motxilla amb entrepans, fruita i una cantimplora plena d'aigua. El camí pujava entre pins i [[alzines]], i de tant en tant s'aturaven a descansar. En Pau, que sempre va amb pressa, anava davant de tothom. A mig camí van trobar una font d'aigua fresca i van omplir les ampolles. Quan van arribar al [[cim]], el paisatge era preciós: es veia tot el poble i, al fons, el mar. La Laia va fer fotos d'un [[esquirol]] que saltava d'una [[branca]] a l'altra. Després de dinar, el cel [[es va ennuvolar]] i van decidir baixar abans que plogués. Van arribar a casa cansats, però [[contents com unes castanyoles]]. Aquella nit, en Pau va [[dormir com un tronc]].",
   q:[
     {q:"Quin dia van anar d'excursió?", o:["Dissabte","Diumenge","Dilluns"], a:1},
@@ -183,7 +184,7 @@ const READINGS=[
     {w:"es va ennuvolar", ok:["se nublo","se nublo el cielo","se cubrio de nubes","se lleno de nubes","nublarse","se ha nublado"]},
     {w:"contents com unes castanyoles", fet:true, ok:["contentos como unas castanuelas","mas contentos que unas castanuelas","felices como perdices","muy contentos","contentisimos","muy felices"]},
     {w:"dormir com un tronc", fet:true, ok:["dormir como un tronco","dormir profundamente","dormir como un lirón","dormir como un liron","durmio como un tronco","dormir muy profundamente"]}]},
-{ title:"La gata de l'àvia", theme:"Animals",
+{ slot:1, title:"La gata de l'àvia", theme:"Animals",
   text:"L'àvia Rosa viu en una casa vella amb un jardí ple de flors i una gata que es diu Mixeta. La Mixeta és blanca amb taques negres i té els ulls verds com dues olives. Cada matí, l'àvia li posa llet en un plat i la gata se la beu a poc a poc. Un dia de [[tardor]], la Mixeta va desaparèixer i l'àvia es va posar molt trista. El seu nét Marc la va buscar per tot arreu: a la [[teulada]], sota el llit i darrere el galliner. Aleshores va començar a [[ploure a bots i barrals]] i en Marc va tornar a casa [[xop]]. Quan va obrir la porta del [[rebost]], va sentir un [[miol]] molt fluix. La Mixeta era allà, amagada dins una [[cistella]], amb tres gatets petitons! L'àvia va somriure [[d'orella a orella]] i va dir que els gatets es quedarien a casa.",
   q:[
     {q:"Com és la Mixeta?", o:["Negra amb taques blanques","Blanca amb taques negres","Grisa amb ratlles"], a:1},
@@ -200,7 +201,7 @@ const READINGS=[
     {w:"cistella", ok:["cesta","cesto","canasta","canasto"]},
     {w:"ploure a bots i barrals", fet:true, ok:["llover a cantaros","llover mucho","llovia a cantaros","diluviar","llover muchisimo"]},
     {w:"somriure d'orella a orella", fet:true, ok:["sonreir de oreja a oreja","sonrio de oreja a oreja","sonreir mucho","de oreja a oreja"]}]},
-{ title:"El mercat del dissabte", theme:"El barri",
+{ slot:2, title:"El mercat del dissabte", theme:"El barri",
   text:"Cada dissabte, en Jordi acompanya el seu pare al mercat del barri. Abans de sortir, fan una llista de la compra perquè no se'ls oblidi res. A la [[parada]] de la fruita compren pomes, peres i un meló ben madur. La senyora Montse, la [[peixatera]], sempre els saluda amb un somriure i els dona un consell per cuinar el peix. Després van a la [[fleca]] a buscar una barra de pa i unes ensaïmades per esmorzar. En Jordi s'encarrega de pagar i de comptar el [[canvi]], perquè vol aprendre a fer comptes. Aquell dissabte, però, hi havia una [[cua]] llarguíssima a la carnisseria. El pare va dir que no calia [[fer-ne un gra massa]] i van esperar xerrant amb els [[veïns]]. Al final van tornar a casa carregats, amb el cistell [[ple a vessar]]. A en Jordi li agrada el mercat perquè sempre hi aprèn alguna cosa nova.",
   q:[
     {q:"Amb qui va en Jordi al mercat?", o:["Amb la seva mare","Amb el seu pare","Amb el seu avi"], a:1},
@@ -217,8 +218,8 @@ const READINGS=[
     {w:"veïns", ok:["vecinos"]},
     {w:"fer-ne un gra massa", fet:true, ok:["exagerar","pasarse","sacar las cosas de quicio","hacer una montana de un grano de arena","no exagerar"]},
     {w:"ple a vessar", fet:true, ok:["lleno a rebosar","lleno hasta arriba","a rebosar","muy lleno","hasta los topes","lleno hasta los topes","rebosante"]}]},
-{ title:"La gran final", theme:"Esport",
-  text:"El divendres a la tarda, l'equip de l'escola jugava la final del [[torneig]] contra el col·legi del poble veí. La Carla era la portera i estava tan nerviosa que tenia un [[nus]] a l'estómac. A la primera part, els rivals van marcar un gol i alguns jugadors van començar a abaixar el cap. A la mitja part, l'entrenador els va reunir i els va dir: «Ara cal [[posar-se les piles]] i no [[tirar la tovallola]]!». A la segona part, l'equip va jugar amb molta més [[empenta]]. En Hugo va [[xutar]] des de fora de l'àrea i la [[pilota]] va entrar per l'escaire. Faltant dos minuts, la Carla va aturar un penal i tota la [[graderia]] va cridar d'alegria. El partit va acabar en [[empat]] i el guanyador es va decidir als penals. L'escola va guanyar la copa i tots es van abraçar ben junts. Aquell dia van aprendre que treballar en equip val més que qualsevol gol.",
+{ slot:3, title:"La gran final", theme:"Esport",
+  text:"El divendres a la tarda, l'equip de l'escola jugava la final del [[torneig]] contra el col·legi del poble veí. La Carla era la portera i estava tan nerviosa que tenia un [[nus]] a l'estómac. A la primera part, els rivals van marcar un gol i alguns jugadors van començar a abaixar el cap. A la mitja part, l'entrenador els va reunir i els va dir: «Ara cal [[posar-se les piles]] i no tirar la tovallola!». A la segona part, l'equip va jugar amb molta més [[empenta]]. En Hugo va [[xutar]] des de fora de l'àrea i la [[pilota]] va entrar per l'escaire. Faltant dos minuts, la Carla va aturar un penal i tota la [[graderia]] va cridar d'alegria. El partit va acabar en [[empat]] i el guanyador es va decidir als penals. L'escola va guanyar la copa i tots es van abraçar ben junts. Aquell dia van aprendre que treballar en equip val més que qualsevol gol.",
   q:[
     {q:"En quina posició jugava la Carla?", o:["Portera","Davantera","Defensa"], a:0},
     {q:"Com anava el partit a la mitja part?", o:["L'escola guanyava","L'escola perdia per un gol","Anaven empatats"], a:1},
@@ -234,7 +235,7 @@ const READINGS=[
     {w:"graderia", ok:["grada","gradas","graderio","publico"]},
     {w:"empat", ok:["empate"]},
     {w:"posar-se les piles", fet:true, ok:["ponerse las pilas","ponernos las pilas","espabilar","espabilarse","esforzarse mas","esforzarse"]}]},
-{ title:"Tempesta al far", theme:"Aventura",
+{ slot:4, title:"Tempesta al far", theme:"Aventura",
   text:"En Biel viu en un poble de pescadors, al costat del mar, i el seu avi és el guardià del far. Una nit d'hivern es va aixecar una tempesta molt forta: bufava el vent i les [[onades]] eren altíssimes. De sobte, la llum del far es va apagar i l'avi va dir que calia arreglar-la de seguida. En Biel, que normalment és una mica [[poruc]], va agafar la [[llanterna]] i el va acompanyar escales amunt. A dalt de tot [[feia un fred que pelava]] i els vidres tremolaven amb cada ràfega de vent. L'avi va canviar la [[bombeta]] mentre en Biel l'il·luminava amb la llanterna. Quan la llum es va tornar a encendre, van veure una barca petita que tornava cap al port. Gràcies al far, els pescadors van poder arribar [[sans i estalvis]]. [[L'endemà]], tot el poble va felicitar en Biel per la seva [[valentia]]. Des d'aquell dia, ja no té por de pujar al far, ni de nit ni de dia.",
   q:[
     {q:"Qui és el guardià del far?", o:["El pare d'en Biel","Un pescador del poble","L'avi d'en Biel"], a:2},
@@ -250,7 +251,167 @@ const READINGS=[
     {w:"l'endemà", ok:["al dia siguiente","el dia siguiente","al otro dia","el dia despues","al dia despues"]},
     {w:"valentia", ok:["valentia","valor","coraje"]},
     {w:"feia un fred que pelava", fet:true, ok:["hacia un frio que pelaba","hacia mucho frio","hacia muchisimo frio","hacia un frio terrible"]},
-    {w:"sans i estalvis", fet:true, ok:["sanos y salvos"]}]}
+    {w:"sans i estalvis", fet:true, ok:["sanos y salvos"]}]},
+{ slot:0, title:"L'hort de l'escola", theme:"Natura i família",
+  text:"Aquest curs, la classe de quart ha començat un hort al pati de l'escola. La mestra Núria va portar [[llavors]] de tomàquet, d'enciam i de pastanaga. Primer van haver de treure les pedres i [[remenar]] la terra amb unes pales petites. Després van fer [[solcs]] ben rectes i hi van plantar les llavors [[a poc a poc i bona lletra]]. Cada dia, dos alumnes s'encarreguen de [[regar]] l'hort amb una [[regadora]]. Al cap d'unes setmanes van començar a sortir les primeres fulles verdes. Un matí, però, van descobrir que els [[cargols]] s'havien menjat mig enciam! En Pol va proposar posar closques d'ou al voltant de les plantes per protegir-les. A la primavera van collir les primeres pastanagues i les van tastar a l'hora de l'esmorzar. Tots van dir que eren les més bones del món, perquè les havien cultivat ells mateixos.",
+  q:[
+    {q:"Qui va portar les llavors?", o:["La mestra Núria","En Pol","El director de l'escola"], a:0},
+    {q:"Què van fer primer de tot?", o:["Regar l'hort","Treure les pedres i remenar la terra","Collir pastanagues"], a:1},
+    {q:"Qui s'havia menjat mig enciam?", o:["Els ocells","Un gos del barri","Els cargols"], a:2},
+    {q:"Què va proposar en Pol?", o:["Posar closques d'ou al voltant de les plantes","Posar un espantaocells","Tancar l'hort amb clau"], a:0},
+    {q:"Per què deien que les pastanagues eren les més bones del món?", o:["Perquè eren molt grosses","Perquè les havien cultivat ells mateixos","Perquè eren dolces com caramels"], a:1}],
+  v:[
+    {w:"llavors", ok:["semillas","semilla","simientes"]},
+    {w:"remenar", ok:["remover","mover","revolver","mezclar"]},
+    {w:"solcs", ok:["surcos","surco"]},
+    {w:"regar", ok:["regar"]},
+    {w:"regadora", ok:["regadera"]},
+    {w:"cargols", ok:["caracoles","caracol"]},
+    {w:"a poc a poc i bona lletra", fet:true, ok:["poco a poco y buena letra","despacio y con cuidado","poco a poco y con cuidado","con calma y cuidado","despacio y bien","con cuidado"]}]},
+{ slot:0, title:"Un dia a la platja", theme:"Natura i família",
+  text:"Al mes de juliol, la família Soler va passar un dia sencer a la platja. Van arribar d'hora per trobar un bon lloc a la [[sorra]], a prop de l'aigua. La petita Ona va construir un castell amb una [[galleda]] i una pala, mentre el seu germà Martí buscava [[petxines]]. El pare va clavar el [[para-sol]] ben fort perquè el vent no se l'emportés. A migdia feia tanta calor que tots es van posar crema per no cremar-se la pell. Després de dinar, el Martí es va banyar amb unes [[ulleres]] i va veure peixets de colors entre les roques. De sobte, una onada gran va arribar fins a les tovalloles i ho va deixar tot moll. Tothom va riure, perquè semblava que el mar també volia jugar. A la tarda, el sol [[es va pondre]] i el cel es va tornar de color taronja. Tornant a casa, l'Ona deia que havia estat [[un dia rodó]].",
+  q:[
+    {q:"En quin mes van anar a la platja?", o:["Juny","Juliol","Agost"], a:1},
+    {q:"Què feia el Martí mentre l'Ona construïa el castell?", o:["Buscava petxines","Nedava entre les roques","Dormia sota el para-sol"], a:0},
+    {q:"Per què el pare va clavar el para-sol ben fort?", o:["Perquè era nou","Perquè feia molt de sol","Perquè el vent no se l'emportés"], a:2},
+    {q:"Què va fer l'onada gran?", o:["Es va endur el castell de sorra","Va mullar les tovalloles","Va espantar els peixets"], a:1},
+    {q:"Què vol dir que va ser «un dia rodó»?", o:["Que va ser un dia perfecte","Que va ser un dia molt curt","Que van donar voltes tot el dia"], a:0}],
+  v:[
+    {w:"sorra", ok:["arena"]},
+    {w:"galleda", ok:["cubo","cubito"]},
+    {w:"petxines", ok:["conchas","concha","conchitas"]},
+    {w:"para-sol", ok:["sombrilla","parasol"]},
+    {w:"ulleres", ok:["gafas","gafas de bucear","anteojos","lentes"]},
+    {w:"es va pondre", ok:["se puso","se escondio","se oculto","anochecio","atardecio","ponerse"]},
+    {w:"un dia rodó", fet:true, ok:["un dia redondo","un dia perfecto","un dia genial","un dia estupendo","un dia fantastico"]}]},
+{ slot:1, title:"El gos que no volia banyar-se", theme:"Animals",
+  text:"En Rufo és un gos petit i pelut que viu amb la família Puig. És molt juganer, però té una mania: no vol banyar-se per res del món. Cada vegada que sent l'aigua de la [[banyera]], s'amaga sota el sofà i no hi ha manera de fer-lo sortir. Un diumenge, després de rebolcar-se en un [[bassal]] de fang, va tornar a casa [[més brut que el pal d'un galliner]]. La Júlia va tenir una idea: va omplir una [[palangana]] amb aigua tèbia i hi va tirar la seva pilota preferida. En Rufo, encuriosit, s'hi va acostar a poc a poc i hi va ficar el [[morro]]. [[En un tres i no res]], ja era dins l'aigua jugant i esquitxant tothom. La Júlia el va ensabonar bé i el va [[eixugar]] amb una tovallola ben gran. En Rufo va quedar net i esponjós com un núvol. Des d'aquell dia, mou la cua cada vegada que veu la palangana.",
+  q:[
+    {q:"Quina mania té en Rufo?", o:["No vol menjar","No vol banyar-se","Borda tota la nit"], a:1},
+    {q:"On s'amaga quan sent l'aigua?", o:["Dins l'armari","Al jardí","Sota el sofà"], a:2},
+    {q:"Per què estava tan brut aquell diumenge?", o:["S'havia rebolcat en un bassal de fang","Havia jugat amb farina","S'havia ficat a la xemeneia"], a:0},
+    {q:"Què va posar la Júlia dins la palangana?", o:["Un ànec de goma","La seva pilota preferida","Menjar per a gossos"], a:1},
+    {q:"Què fa ara en Rufo quan veu la palangana?", o:["S'amaga sota el sofà","Borda molt fort","Mou la cua perquè està content"], a:2}],
+  v:[
+    {w:"banyera", ok:["banera"]},
+    {w:"bassal", ok:["charco"]},
+    {w:"palangana", ok:["palangana","barreno","barreño","cubeta","barrena"]},
+    {w:"morro", ok:["hocico","morro","nariz"]},
+    {w:"eixugar", ok:["secar","secarlo"]},
+    {w:"més brut que el pal d'un galliner", fet:true, ok:["mas sucio que el palo de un gallinero","muy sucio","sucisimo","hecho un cerdo","sucio como un cerdo","mas sucio que un cerdo"]},
+    {w:"en un tres i no res", fet:true, ok:["en un santiamen","en un momento","en un abrir y cerrar de ojos","enseguida","en un instante","en un periquete","rapidisimo"]}]},
+{ slot:1, title:"Les orenetes del balcó", theme:"Animals",
+  text:"Cada primavera, una parella d'[[orenetes]] fa el niu sota el balcó de casa de la Martina. Arriben a principis d'abril, després d'un viatge llarguíssim des d'Àfrica. Per construir el niu, fan centenars de viatges portant [[fang]] i palla amb el [[bec]]. Al cap d'unes setmanes, la Martina sent uns [[piulets]] molt aguts: han nascut quatre pollets! Els pares no paren en tot el dia de caçar mosquits per alimentar-los. Els pollets són tan [[golafres]] que sempre tenen gana. A poc a poc aprenen a moure les [[ales]] i, un bon dia, fan el primer vol. Quan s'acaba l'estiu, totes les orenetes marxen juntes cap al sud. La Martina les troba a faltar, però la seva àvia li diu: «Paciència, que [[una oreneta sola no fa estiu]]: l'any que ve en tornaran moltes». Mentrestant, la Martina dibuixa orenetes a la llibreta i compta els dies que falten per a la primavera.",
+  q:[
+    {q:"On fan el niu les orenetes?", o:["En un arbre del parc","Sota el balcó de la Martina","A la teulada de l'escola"], a:1},
+    {q:"D'on vénen les orenetes?", o:["D'Àfrica","De la muntanya","Del pol nord"], a:0},
+    {q:"Amb què construeixen el niu?", o:["Amb branques i fulles","Amb plomes","Amb fang i palla"], a:2},
+    {q:"Quants pollets neixen?", o:["Dos","Quatre","Sis"], a:1},
+    {q:"Quan marxen les orenetes?", o:["Quan s'acaba l'estiu","Al mig de l'hivern","Al començament de la primavera"], a:0}],
+  v:[
+    {w:"orenetes", ok:["golondrinas","golondrina"]},
+    {w:"fang", ok:["barro","lodo"]},
+    {w:"bec", ok:["pico"]},
+    {w:"piulets", ok:["pios","pio","piidos","pitidos","piar"]},
+    {w:"golafres", ok:["glotones","tragones","comilones","gloton"]},
+    {w:"ales", ok:["alas"]},
+    {w:"una oreneta sola no fa estiu", fet:true, ok:["una golondrina no hace verano","una golondrina sola no hace verano"]}]},
+{ slot:2, title:"La biblioteca del barri", theme:"El barri",
+  text:"Els dimecres a la tarda, l'Aina va a la biblioteca del barri amb la seva amiga Iris. Primer tornen els llibres que s'havien endut la setmana anterior i els deixen al [[taulell]]. La bibliotecària, que es diu Pilar, sempre els recomana alguna novetat. A la sala infantil hi ha unes [[prestatgeries]] plenes de contes, còmics i llibres d'animals. L'Aina és una [[rata de biblioteca]]: llegeix tot el que li cau a les mans. L'Iris, en canvi, prefereix els llibres d'experiments i d'[[endevinalles]]. Aquell dimecres hi havia l'hora del conte i un senyor amb barba va explicar una història de dracs. Tots els nens l'escoltaven [[amb la boca oberta]]. Abans de marxar, les dues amigues van fer servir el [[carnet]] per endur-se tres llibres cadascuna. Els han de tornar d'aquí a quinze dies; si no, la Pilar les [[renyarà]] una mica.",
+  q:[
+    {q:"Quin dia van a la biblioteca?", o:["Els dilluns","Els dimecres","Els dissabtes"], a:1},
+    {q:"Com es diu la bibliotecària?", o:["Pilar","Iris","Aina"], a:0},
+    {q:"Quins llibres prefereix l'Iris?", o:["Els contes de dracs","Els còmics","Els d'experiments i endevinalles"], a:2},
+    {q:"Què hi havia aquell dimecres?", o:["L'hora del conte","Un concert de música","Un taller de dibuix"], a:0},
+    {q:"Quants llibres s'emporta cadascuna?", o:["Un","Tres","Cinc"], a:1}],
+  v:[
+    {w:"taulell", ok:["mostrador"]},
+    {w:"prestatgeries", ok:["estanterias","estanteria","estantes","baldas"]},
+    {w:"endevinalles", ok:["adivinanzas","acertijos"]},
+    {w:"carnet", ok:["carnet","carne","tarjeta"]},
+    {w:"renyarà", ok:["renira","regañara","reñira","regañara","regañar","renir","echara la bronca"]},
+    {w:"rata de biblioteca", fet:true, ok:["raton de biblioteca","rata de biblioteca"]},
+    {w:"amb la boca oberta", fet:true, ok:["con la boca abierta","boquiabiertos","boquiabierto"]}]},
+{ slot:2, title:"La festa major", theme:"El barri",
+  text:"Al setembre arriba la festa major del barri i tothom la viu amb moltes ganes. Els carrers s'omplen de [[garlandes]] de colors i de llums que pengen d'un balcó a l'altre. El primer dia, els gegants i els capgrossos fan una [[cercavila]] acompanyats de la música dels grallers. En Nil, que té por dels [[petards]], es tapa les orelles quan passen els diables del correfoc. La seva germana Èlia, en canvi, [[s'ho passa d'allò més bé]] saltant sota les [[espurnes]]. El dissabte al vespre hi ha un sopar popular a la plaça, amb taules llarguíssimes. Després, els castellers aixequen un castell de set pisos i tothom aplaudeix i crida [[de valent]]. L'últim dia acaba amb uns [[focs artificials]] que il·luminen tot el cel. En Nil els mira des del balcó, ben tranquil. Diu que l'any que ve, potser, s'atrevirà a anar al correfoc.",
+  q:[
+    {q:"Quan és la festa major del barri?", o:["Al setembre","Al desembre","Al maig"], a:0},
+    {q:"Què fan els gegants el primer dia?", o:["Un sopar a la plaça","Una cercavila","Un castell"], a:1},
+    {q:"Per què en Nil es tapa les orelles?", o:["Perquè té fred","Perquè la música és massa fluixa","Perquè té por dels petards"], a:2},
+    {q:"Quants pisos té el castell?", o:["Tres","Set","Deu"], a:1},
+    {q:"Com acaba l'últim dia de festa?", o:["Amb focs artificials","Amb un correfoc","Amb un sopar popular"], a:0}],
+  v:[
+    {w:"garlandes", ok:["guirnaldas","guirnalda"]},
+    {w:"cercavila", ok:["pasacalles","desfile","pasacalle","cabalgata"]},
+    {w:"petards", ok:["petardos"]},
+    {w:"espurnes", ok:["chispas","chispa"]},
+    {w:"focs artificials", ok:["fuegos artificiales"]},
+    {w:"s'ho passa d'allò més bé", fet:true, ok:["se lo pasa en grande","se lo pasa muy bien","se lo pasa genial","se divierte mucho","se lo pasa pipa","se lo pasa bomba"]},
+    {w:"de valent", fet:true, ok:["con ganas","mucho","con fuerza","muy fuerte","a lo grande","de lo lindo"]}]},
+{ slot:3, title:"La cursa de bicicletes", theme:"Esport",
+  text:"El diumenge, el poble organitzava una cursa de bicicletes per a nens i nenes. La Sara feia setmanes que s'entrenava amb la seva bicicleta vermella. Abans de començar, el seu pare li va revisar els [[frens]] i li va inflar les [[rodes]]. També es va posar el [[casc]] i unes genolleres, per si queia. Quan van donar la [[sortida]], tots els corredors van començar a [[pedalar]] amb totes les forces. A la primera pujada, la Sara anava una mica endarrerida, però no es va rendir. A la baixada va [[anar com una moto]], va avançar tres corredors i es va posar segona. Just abans d'arribar, un nen va caure i la Sara es va aturar a ajudar-lo. Va arribar quarta, però tothom la va aplaudir per haver-se comportat tan bé. El seu pare li va dir que era la més campiona de totes, perquè [[el que compta és participar]].",
+  q:[
+    {q:"De quin color és la bicicleta de la Sara?", o:["Blava","Verda","Vermella"], a:2},
+    {q:"Què va fer el pare abans de la cursa?", o:["Li va revisar els frens i li va inflar les rodes","Li va comprar un casc nou","Li va pintar la bicicleta"], a:0},
+    {q:"Com anava la Sara a la primera pujada?", o:["Anava primera","Anava una mica endarrerida","S'havia aturat"], a:1},
+    {q:"Per què es va aturar la Sara abans d'arribar?", o:["Perquè havia punxat una roda","Perquè estava cansada","Per ajudar un nen que havia caigut"], a:2},
+    {q:"En quina posició va arribar?", o:["Primera","Segona","Quarta"], a:2}],
+  v:[
+    {w:"frens", ok:["frenos","freno"]},
+    {w:"rodes", ok:["ruedas","rueda"]},
+    {w:"casc", ok:["casco"]},
+    {w:"sortida", ok:["salida"]},
+    {w:"pedalar", ok:["pedalear"]},
+    {w:"anar com una moto", fet:true, ok:["ir como una moto","ir muy rapido","ir rapidisimo","ir como un rayo","ir a toda velocidad","ir como una bala"]},
+    {w:"el que compta és participar", fet:true, ok:["lo que cuenta es participar","lo importante es participar","lo que importa es participar"]}]},
+{ slot:3, title:"La primera classe de natació", theme:"Esport",
+  text:"En Aleix tenia vuit anys i encara no sabia nedar. Quan va entrar per primer cop a la piscina coberta, el cor li anava [[a cent per hora]]. El monitor, en Toni, li va donar un [[xurro]] de colors i unes [[aletes]]. Primer van aprendre a bufar dins l'aigua per fer [[bombolles]]. Després, agafat a la [[vora]], en Aleix va practicar com moure les [[cames]]. «No tinguis por, que l'aigua t'aguanta», li deia en Toni. A poc a poc, en Aleix es va anar deixant anar i va aconseguir flotar d'esquena. A la tercera classe ja podia nedar sol fins a la meitat de la piscina. Estava tan content que [[no cabia a la pell]]. Ara, cada dissabte, demana als pares que el portin a nedar.",
+  q:[
+    {q:"Quants anys tenia en Aleix?", o:["Sis","Vuit","Deu"], a:1},
+    {q:"Com es diu el monitor?", o:["Toni","Pau","Aleix"], a:0},
+    {q:"Què van aprendre primer?", o:["A saltar del trampolí","A nedar d'esquena","A bufar dins l'aigua per fer bombolles"], a:2},
+    {q:"Què va aconseguir a la tercera classe?", o:["Nedar sol fins a la meitat de la piscina","Guanyar una cursa","Bussejar fins al fons"], a:0},
+    {q:"Què vol dir que en Aleix «no cabia a la pell»?", o:["Que s'havia fet gran","Que estava molt i molt content","Que tenia fred"], a:1}],
+  v:[
+    {w:"xurro", ok:["churro","flotador","churro de piscina","churro flotador"]},
+    {w:"aletes", ok:["aletas"]},
+    {w:"bombolles", ok:["burbujas","pompas","burbuja"]},
+    {w:"vora", ok:["borde","orilla","bordillo"]},
+    {w:"cames", ok:["piernas"]},
+    {w:"a cent per hora", fet:true, ok:["a cien por hora","muy rapido","a mil por hora","a toda velocidad"]},
+    {w:"no cabia a la pell", fet:true, ok:["no cabia en si de gozo","no cabia en si","estaba muy contento","no cabia en su piel","estaba contentisimo","estaba feliz"]}]},
+{ slot:4, title:"El mapa del tresor", theme:"Aventura",
+  text:"Netejant les [[golfes]] de casa l'àvia, en Gerard i la seva cosina Clara van trobar una [[capsa]] de llauna rovellada. A dins hi havia un mapa vell, dibuixat a mà, amb una creu vermella al costat d'un [[pou]]. Els dos cosins es van mirar i, sense dir res, van sortir corrents cap al jardí. Seguint el mapa, van comptar vint passes des de la figuera i deu més cap a la [[tanca]]. Allà hi havia el pou, tot cobert d'heura. Van començar a [[cavar]] amb una pala i, al cap d'una estona, van topar amb una cosa dura. Era una altra capsa! [[Amb el cor en un puny]], la van obrir: hi havia cartes, fotos antigues i unes [[monedes]]. L'àvia, en veure-ho, es va emocionar molt. Era el tresor que ella mateixa havia amagat quan era petita!",
+  q:[
+    {q:"On van trobar la primera capsa?", o:["Al soterrani","A les golfes","Al jardí"], a:1},
+    {q:"Què marcava la creu vermella del mapa?", o:["Un lloc al costat d'un pou","La porta de la casa","El tronc de la figuera"], a:0},
+    {q:"Quantes passes van comptar primer des de la figuera?", o:["Deu","Cent","Vint"], a:2},
+    {q:"Què hi havia dins la segona capsa?", o:["Joies d'or","Cartes, fotos antigues i monedes","Un altre mapa"], a:1},
+    {q:"Qui havia amagat el tresor?", o:["L'àvia, quan era petita","Un pirata","En Gerard, per fer una broma"], a:0}],
+  v:[
+    {w:"golfes", ok:["desvan","buhardilla","altillo","atico"]},
+    {w:"capsa", ok:["caja","cajita"]},
+    {w:"pou", ok:["pozo"]},
+    {w:"tanca", ok:["valla","cerca","verja","vallado"]},
+    {w:"cavar", ok:["cavar","excavar"]},
+    {w:"monedes", ok:["monedas","moneda"]},
+    {w:"amb el cor en un puny", fet:true, ok:["con el corazon en un puño","con el corazon en un puno","muy nerviosos","con mucho miedo","muy asustados"]}]},
+{ slot:4, title:"Perduts a la boira", theme:"Aventura",
+  text:"Un dissabte de novembre, la [[colla]] d'excursionistes de l'escola va sortir a caminar pel bosc. Al principi el dia era clar, però de mica en mica va començar a pujar una [[boira]] molt espessa. Al cap de poc, no es veia [[ni un pam davant del nas]]. En Max i la Lucía es van quedar enrere i van perdre de vista el grup. Tenien una mica de por, però la Lucía va recordar el que deia el monitor: «Si us perdeu, no us mogueu i feu soroll». Es van asseure sota un [[roure]] i van començar a bufar el [[xiulet]] que portaven a la motxilla. Per passar l'estona, es van menjar unes [[galetes]] i van cantar cançons. Al cap de mitja hora, van sentir unes veus: era el monitor, que els buscava! Quan el van veure, [[se'ls va treure un pes de sobre]]. Aquell dia van aprendre que, en una situació difícil, cal mantenir la calma.",
+  q:[
+    {q:"En quin mes va ser l'excursió?", o:["Juliol","Març","Novembre"], a:2},
+    {q:"Què va passar al bosc?", o:["Va pujar una boira molt espessa","Va començar a nevar","Es va fer de nit de cop"], a:0},
+    {q:"Què van fer en Max i la Lucía quan es van perdre?", o:["Van córrer per buscar el camí","Es van quedar quiets i van fer soroll","Van pujar dalt d'un arbre"], a:1},
+    {q:"Amb què feien soroll?", o:["Picant dues pedres","Cridant molt fort","Bufant un xiulet"], a:2},
+    {q:"Què van aprendre aquell dia?", o:["Que cal mantenir la calma","Que no s'ha d'anar mai d'excursió","Que les galetes són molt bones"], a:0}],
+  v:[
+    {w:"colla", ok:["grupo","pandilla","cuadrilla","grupo de amigos"]},
+    {w:"boira", ok:["niebla","bruma"]},
+    {w:"roure", ok:["roble"]},
+    {w:"xiulet", ok:["silbato","pito"]},
+    {w:"galetes", ok:["galletas","galleta"]},
+    {w:"(no es veia) ni un pam davant del nas", fet:true, ok:["no se veia nada","no se veia ni torta","no se veia ni un palmo","no se veia ni un palmo delante de la nariz","no se veia mas alla de las narices","ni un palmo delante de la nariz"]},
+    {w:"se'ls va treure un pes de sobre", fet:true, ok:["se les quito un peso de encima","se quitaron un peso de encima","un peso de encima","se tranquilizaron","se quedaron tranquilos","sintieron alivio"]}]}
 ];
 
 const $=id=>document.getElementById(id);
@@ -286,15 +447,20 @@ function beep(ok){ if(!sound) return; try{ actx=actx||new (window.AudioContext||
   o.connect(g).connect(actx.destination);o.start(t+i*0.11);o.stop(t+i*0.11+0.18);}); }catch(e){} }
 
 // ---------- start screen ----------
-const KEY="reports-informe-lectura-catala";
+const KEY="reports-informe-lectura-catala", POS_KEY="lectura-catala-posicio", PASS=80;
+const SLOTS=[0,1,2,3,4].map(k=>READINGS.map((r,i)=>r.slot===k?i:-1).filter(i=>i>=0));
+let POS=[0,0,0,0,0]; try{ const x=JSON.parse(localStorage.getItem(POS_KEY)||"null"); if(Array.isArray(x)) POS=SLOTS.map((_,k)=>+x[k]||0); }catch(e){}
+const currentOf=k=>SLOTS[k][POS[k]%SLOTS[k].length];
+function advance(k){ POS[k]=(POS[k]+1)%SLOTS[k].length; try{ localStorage.setItem(POS_KEY,JSON.stringify(POS)); }catch(e){} }
 const loadLocal=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } };
 function renderPicks(){
   const reps=loadLocal();
   $("picks").innerHTML="";
-  READINGS.forEach((r,i)=>{
-    const mine=reps.filter(x=>x.reading===i), best=mine.reduce((m,x)=>Math.max(m,+x.pct||0),-1);
+  SLOTS.forEach((list,k)=>{
+    const i=currentOf(k), r=READINGS[i], pos=POS[k]%list.length;
+    const mine=reps.filter(x=>x.title===r.title), best=mine.reduce((m,x)=>Math.max(m,+x.pct||0),-1);
     const b=document.createElement("button"); b.type="button"; b.className="pickbtn";
-    b.innerHTML=`<span>Lectura ${i+1} · ${esc(r.title)}</span><small>${esc(r.theme)} · 5 preguntes i ${r.v.length} de vocabulari</small><span class="best">${best>=0?`Millor resultat: ${best}%`:"Encara no l'has feta"}</span>`;
+    b.innerHTML=`<span>Exercici ${k+1} · ${esc(r.title)}</span><small>${esc(r.theme)} · text ${pos+1} de ${list.length} · 5 preguntes i ${r.v.length} de vocabulari</small><span class="best">${best>=0?`Millor resultat: ${best}% (amb un ${PASS}% canvia el text)`:`Encara no l'has fet · amb un ${PASS}% canvia el text`}</span>`;
     b.onclick=()=>startReading(i); $("picks").append(b);
   });
 }
@@ -304,7 +470,7 @@ let cur=0, opts=[], checked=false, results=[];
 function startReading(i){
   cur=i; checked=false; warned=false; const R=READINGS[i];
   ["start","results","reports"].forEach(x=>$(x).hidden=true); $("quiz").hidden=false;
-  $("qTag").textContent=`Lectura ${i+1} de ${READINGS.length} · ${R.theme}`;
+  $("qTag").textContent=`Exercici ${R.slot+1} de ${SLOTS.length} · ${R.theme}`;
   $("qTitle").textContent=R.title;
   $("qText").innerHTML="<p>"+esc(R.text).replace(/\[\[(.+?)\]\]/g,"<mark>$1</mark>")+"</p>";
   opts=R.q.map(q=>shuffle(q.o.map((t,k)=>({t,k}))));
@@ -317,7 +483,7 @@ function startReading(i){
 }
 $("quitBtn").onclick=goHome;
 $("homeBtn").onclick=goHome;
-$("againBtn").onclick=()=>startReading(cur);
+$("againBtn").onclick=()=>startReading(currentOf(READINGS[cur].slot));
 $("seeBtn").onclick=showResults;
 function goHome(){ ["quiz","results"].forEach(x=>$(x).hidden=true); $("start").hidden=false; $("reports").hidden=false; renderPicks(); window.scrollTo({top:0}); }
 $("vList").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.tagName==="INPUT"){ e.preventDefault(); const n=$("v"+(+e.target.id.slice(1)+1)); if(n) n.focus(); else $("checkBtn").focus(); } });
@@ -371,6 +537,11 @@ function showResults(){
   $("missBlock").hidden=!ko.length;
   $("missList").innerHTML=ko.map(r=>`<article><span class="q">${esc(r.label)}</span><span>Has respost: <span class="yours">${esc(r.yours)}</span></span>
      <span>Correcte: <span class="right">${esc(r.right)}</span></span><span class="small">Motiu: ${esc(r.why)}</span></article>`).join("");
+  const passed=pct>=PASS, k=READINGS[cur].slot;
+  if(passed && currentOf(k)===cur) advance(k);
+  $("passMsg").hidden=false; $("passMsg").className="fb "+(passed?"ok":"ko");
+  $("passMsg").textContent= passed ? `Has encertat el ${pct}% (${PASS}% o més): aquest text queda superat i a l'exercici ${k+1} en sortirà un de nou.` : `Has encertat el ${pct}%. Necessites un ${PASS}% per passar a un text nou: torna-ho a provar!`;
+  $("againBtn").textContent= passed ? "Fes el text nou" : "Torna a fer aquesta lectura";
   buildReport(); saveReport();
   if(pct>=75) confetti(); window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -380,7 +551,7 @@ const stamp=()=>{ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d
 const dlMsg=t=>{ $("dlMsg").textContent=t; };
 function buildReport(){
   const R=READINGS[cur], ok=results.filter(r=>r.ok).length, n=results.length, pct=Math.round(ok/n*100), title="COMPRENSIÓ LECTORA I VOCABULARI - INFORME";
-  const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),`Lectura ${cur+1}: ${R.title}`,"",
+  const L=[title,"=".repeat(title.length),"Data: "+new Date().toLocaleString("ca-ES"),`Exercici ${R.slot+1}: ${R.title}`,"",
     `Resultat: ${ok} de ${n} encerts (${pct}%)`,`Nota: ${(ok/n*10).toFixed(1).replace(".",",")} / 10`,
     `Encerts: ${ok} · Errors: ${n-ok}`,`Valoració: ${$("resTitle").textContent}`,"","ENCERTS PER TIPUS","-----------------"];
   TYPES.forEach(g=>{ const r=results.filter(x=>x.type===g.t); if(r.length) L.push(`${g.name}: ${r.filter(x=>x.ok).length} de ${r.length}`); });
@@ -397,7 +568,7 @@ function saveFile(name,text){
 }
 function saveReport(){
   const ok=results.filter(r=>r.ok).length, n=results.length, file=`informe-lectura-catala-${cur+1}_${stamp()}.txt`;
-  const data={id:String(Date.now()),game:"Comprensió Lectora i Vocabulari",reading:cur,at:new Date().toISOString(),correct:ok,total:n,pct:Math.round(ok/n*100),
+  const data={id:String(Date.now()),game:"Comprensió Lectora i Vocabulari",reading:cur,slot:READINGS[cur].slot,title:READINGS[cur].title,at:new Date().toISOString(),correct:ok,total:n,pct:Math.round(ok/n*100),
     grade:(ok/n*10).toFixed(1).replace(".",","),valuation:$("resTitle").textContent,file,text:$("reportText").value};
   try{ const list=loadLocal(); list.unshift(data); localStorage.setItem(KEY,JSON.stringify(list.slice(0,50))); }catch(e){}
   renderReports();
@@ -417,7 +588,7 @@ function renderReports(){
   list.forEach(r=>{
     const row=document.createElement("div"); row.className="rep-row";
     const info=document.createElement("div"); info.className="info";
-    info.textContent=`${new Date(r.at).toLocaleString("ca-ES",{dateStyle:"short",timeStyle:"short"})} · Lectura ${(+r.reading||0)+1} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
+    info.textContent=`${new Date(r.at).toLocaleString("ca-ES",{dateStyle:"short",timeStyle:"short"})} · ${r.title||"Lectura "+((+r.reading||0)+1)} · ${r.correct}/${r.total} (${r.pct}%) · Nota ${r.grade}`;
     const btns=document.createElement("div"); btns.className="row";
     const b1=document.createElement("button"); b1.type="button"; b1.className="ghost"; b1.textContent="Descarrega"; b1.onclick=()=>saveFile(r.file||"informe.txt",String(r.text||""));
     const b2=document.createElement("button"); b2.type="button"; b2.className="ghost"; b2.textContent="Copia";
